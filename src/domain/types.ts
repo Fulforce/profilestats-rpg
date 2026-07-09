@@ -34,6 +34,14 @@ export type Title = {
   requiredXP: number;
 };
 
+export type TitleResult = {
+  currentTitleId: string;
+  currentTitleName: string;
+  unlockedTitles: string[];
+  newlyUnlockedTitle?: string;
+  event?: Event;
+};
+
 export type Achievement = {
   id: string;
   name: string;

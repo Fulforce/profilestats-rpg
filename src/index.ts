@@ -12,5 +12,6 @@ export * from "./theme/theme-error.js";
 export * from "./theme/theme-loader.js";
 export * from "./theme/theme-validator.js";
 export * from "./theme/types.js";
+export * from "./title/title-engine.js";
 export * from "./xp/xp-engine.js";
 export * from "./xp/xp-rules.js";
