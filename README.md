@@ -47,8 +47,29 @@ display:
 4. Open the repository on GitHub.
 5. Go to **Actions**.
 6. Enable workflows if GitHub asks.
-7. Run **Update Journey** manually, or wait for the daily schedule.
+7. Run **Update Journey** manually.
 8. Commit output will be generated automatically by the workflow.
+
+## Scheduled Updates
+
+The default repository keeps scheduled updates disabled so forks do not accidentally run before they are configured.
+
+To enable daily updates in your fork, edit [.github/workflows/update-journey.yml](.github/workflows/update-journey.yml) and uncomment:
+
+```yaml
+schedule:
+  - cron: "17 5 * * *"
+```
+
+Commit and push that change after setting `githubUser` in [config.yml](config.yml).
+
+## Fork Behavior
+
+Repository settings such as branch protection rules are not part of the files copied into a fork.
+
+When you fork this project, you get the code, themes, specs, and GitHub Actions workflow files. Your fork has its own repository settings, branch rules, secrets, and Actions permissions.
+
+The workflow itself is copied, but scheduled runs are disabled by default until you uncomment the `schedule` block.
 
 ## Configuration
 
