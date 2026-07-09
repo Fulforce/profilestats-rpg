@@ -51,7 +51,19 @@ describe("renderJourneySvg", () => {
     expect(svg).toContain("Lothlorien");
     expect(svg).toContain("Amon Hen");
     expect(svg).toContain("Achievements");
+    expect(svg).toContain("Journey Started");
+    expect(svg).toContain("XP Sources");
+    expect(svg).toContain("Pull requests");
+    expect(svg).toContain("+3,600 XP");
+    expect(svg).toContain("Streaks");
+    expect(svg).toContain("+2,400 XP");
+    expect(svg).toContain("Reviews");
+    expect(svg).toContain("+1,675 XP");
+    expect(svg).toContain("Rivendell");
+    expect(svg).toContain("Dead Marshes");
+    expect(svg).toContain("Shelob");
     expect(svg).toContain("Current character position");
+    expect(svg).toContain('stroke-width="7"');
     expect(svg).not.toContain("<script");
   });
 

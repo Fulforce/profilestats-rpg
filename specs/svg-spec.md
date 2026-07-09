@@ -102,6 +102,142 @@ Priority order:
 
 ```
 
+\---
+
+\# MVP Visual Direction
+
+The MVP renderer should feel more like a quest progress card than a stats dashboard.
+
+The first visual read should be:
+
+```text
+Who am I?
+Where am I?
+Where am I going next?
+How far through the journey am I?
+```
+
+Stats must support that read rather than compete with it.
+
+\---
+
+\# V2 MVP Layout
+
+The preferred MVP layout is:
+
+```text
+Header:
+  Theme name
+  User + current title
+  Journey Started label
+
+Hero status:
+  Current Location -> Next Location
+  XP • Progress % • Achievement Count
+
+Map:
+  Completed route segment
+  Future route segment
+  All markers
+  Selective labels
+  Prominent character marker
+
+Footer:
+  Journey start date
+  Last updated
+```
+
+\---
+
+\# Journey Started Label
+
+The SVG should include a small label showing when the journey began.
+
+Example:
+
+```text
+Journey Started: 2026-01-01
+```
+
+This label should be secondary to the current location and progress.
+
+\---
+
+\# Label Density
+
+All route markers should be visible.
+
+Location labels should be selective to avoid overlap.
+
+Always label:
+
+```text
+First location
+Current location
+Next location
+Final location
+```
+
+For the Middle-earth MVP, also label recognizable route anchors when present:
+
+```text
+Rivendell
+Lothlorien
+Dead Marshes
+Shelob's Lair
+```
+
+Additional labels may be shown when spacing allows.
+
+Do not render every location label if it causes crowding.
+
+\---
+
+\# XP Source Summary
+
+The top-middle area may be used to explain how the current XP was earned.
+
+Display a compact contribution summary based on stored stats.
+
+Example:
+
+```text
+XP Sources
+9 commits + 1 PR merged + 1 repository
+```
+
+This should remain short and should not become a full dashboard.
+
+\---
+
+\# Route Progress Styling
+
+The completed route segment must be visually distinct from the future route segment.
+
+Recommended MVP styling:
+
+```text
+Completed route: theme primary color
+Future route: muted secondary color
+Current marker: accent color with subtle glow
+Future markers: hollow or muted
+```
+
+\---
+
+\# Character Prominence
+
+The character should be the strongest visual element on the map.
+
+The character should:
+
+```text
+Be larger than ordinary location markers
+Sit above the route
+Include a subtle "you are here" pointer or anchor
+Move smoothly between route markers
+```
+
 
 
 \---
