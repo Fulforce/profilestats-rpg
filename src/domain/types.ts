@@ -17,11 +17,15 @@ export type XPResult = {
 };
 
 export type JourneyState = {
+  xp: number;
+  targetXP: number;
   progressPercent: number;
   currentLocationId: string;
   currentLocationName: string;
   nextLocationId?: string;
   nextLocationName?: string;
+  characterX: number;
+  segmentProgressPercent: number;
 };
 
 export type Title = {
