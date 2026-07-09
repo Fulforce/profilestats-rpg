@@ -1,0 +1,37 @@
+[
+  {
+    "id": "HOBBIT",
+    "name": "Hobbit",
+    "requiredXP": 0
+  },
+  {
+    "id": "WANDERER",
+    "name": "Wanderer",
+    "requiredXP": 1000
+  },
+  {
+    "id": "RANGER",
+    "name": "Ranger",
+    "requiredXP": 5000
+  },
+  {
+    "id": "ADVENTURER",
+    "name": "Adventurer",
+    "requiredXP": 10000
+  },
+  {
+    "id": "RING_BEARER",
+    "name": "Ring Bearer",
+    "requiredXP": 20000
+  },
+  {
+    "id": "HERO_OF_THE_FELLOWSHIP",
+    "name": "Hero of the Fellowship",
+    "requiredXP": 35000
+  },
+  {
+    "id": "LEGEND_OF_MIDDLE_EARTH",
+    "name": "Legend of Middle-earth",
+    "requiredXP": 50000
+  }
+]
