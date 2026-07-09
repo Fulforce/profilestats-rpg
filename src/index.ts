@@ -9,6 +9,8 @@ export * from "./github/github-api.js";
 export * from "./github/github-error.js";
 export * from "./github/types.js";
 export * from "./journey/journey-engine.js";
+export * from "./storage/storage-engine.js";
+export * from "./storage/types.js";
 export * from "./theme/theme-error.js";
 export * from "./theme/theme-loader.js";
 export * from "./theme/theme-validator.js";
