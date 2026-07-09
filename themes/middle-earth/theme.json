@@ -1,0 +1,9 @@
+{
+  "id": "middle-earth",
+  "name": "Middle-earth",
+  "version": "1.0.0",
+  "author": "github-profilestats-rpg",
+  "description": "Journey from The Shire to Mount Doom through a developer adventure.",
+  "defaultTargetXP": 50000,
+  "startingTitle": "HOBBIT"
+}

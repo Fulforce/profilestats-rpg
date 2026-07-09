@@ -1,0 +1,105 @@
+{
+  "targetXP": 50000,
+  "locations": [
+    {
+      "id": "SHIRE",
+      "name": "The Shire",
+      "requiredXP": 0,
+      "x": 40,
+      "terrain": "grasslands",
+      "description": "The quiet beginning of the journey."
+    },
+    {
+      "id": "BREE",
+      "name": "Bree",
+      "requiredXP": 2500,
+      "x": 120,
+      "terrain": "village"
+    },
+    {
+      "id": "WEATHERTOP",
+      "name": "Weathertop",
+      "requiredXP": 5000,
+      "x": 205,
+      "terrain": "hills"
+    },
+    {
+      "id": "RIVENDELL",
+      "name": "Rivendell",
+      "requiredXP": 8500,
+      "x": 300,
+      "terrain": "valley"
+    },
+    {
+      "id": "MORIA",
+      "name": "Moria",
+      "requiredXP": 12500,
+      "x": 395,
+      "terrain": "mountains"
+    },
+    {
+      "id": "LOTHLORIEN",
+      "name": "Lothlorien",
+      "requiredXP": 16500,
+      "x": 480,
+      "terrain": "forest"
+    },
+    {
+      "id": "AMON_HEN",
+      "name": "Amon Hen",
+      "requiredXP": 20500,
+      "x": 555,
+      "terrain": "ruins"
+    },
+    {
+      "id": "EMYN_MUIL",
+      "name": "Emyn Muil",
+      "requiredXP": 24500,
+      "x": 635,
+      "terrain": "rocks"
+    },
+    {
+      "id": "DEAD_MARSHES",
+      "name": "Dead Marshes",
+      "requiredXP": 28500,
+      "x": 715,
+      "terrain": "swamp"
+    },
+    {
+      "id": "BLACK_GATE",
+      "name": "Black Gate",
+      "requiredXP": 33000,
+      "x": 790,
+      "terrain": "wasteland"
+    },
+    {
+      "id": "ITHILIEN",
+      "name": "Ithilien",
+      "requiredXP": 37000,
+      "x": 865,
+      "terrain": "woodland"
+    },
+    {
+      "id": "CIRITH_UNGOL",
+      "name": "Cirith Ungol",
+      "requiredXP": 41000,
+      "x": 940,
+      "terrain": "mountains"
+    },
+    {
+      "id": "SHELOBS_LAIR",
+      "name": "Shelob's Lair",
+      "requiredXP": 45500,
+      "x": 1015,
+      "terrain": "cavern"
+    },
+    {
+      "id": "MOUNT_DOOM",
+      "name": "Mount Doom",
+      "requiredXP": 50000,
+      "x": 1100,
+      "terrain": "volcano",
+      "description": "The final threshold of the quest."
+    }
+  ]
+}
