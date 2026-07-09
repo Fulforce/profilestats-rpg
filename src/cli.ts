@@ -1,3 +1,4 @@
+import { calculateAchievementResult } from "./achievement/achievement-engine.js";
 import { loadConfig } from "./config/config-loader.js";
 import { calculateJourneyState } from "./journey/journey-engine.js";
 import { loadTheme } from "./theme/theme-loader.js";
@@ -22,6 +23,11 @@ const theme = await loadTheme(config.theme);
 const xp = calculateXP(emptyActivity, config.journey.xpMultiplier);
 const journey = calculateJourneyState(xp.finalXP, theme.map, config.journey.targetXP);
 const title = calculateTitleResult(xp.finalXP, theme.titles);
+const achievements = calculateAchievementResult(theme.achievements, {
+  xp: xp.finalXP,
+  activity: emptyActivity,
+  journey
+});
 
 console.log(
   JSON.stringify(
@@ -32,6 +38,7 @@ console.log(
       routeLocations: theme.map.locations.length,
       xp,
       title,
+      achievements,
       state: journey
     },
     null,

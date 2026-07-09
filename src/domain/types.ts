@@ -49,6 +49,13 @@ export type Achievement = {
   unlockedAt?: string;
 };
 
+export type AchievementResult = {
+  achievements: string[];
+  unlockedThisRun: string[];
+  achievementCount: number;
+  events: Event[];
+};
+
 export type State = {
   xp: number;
   title: string;

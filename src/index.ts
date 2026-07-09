@@ -1,3 +1,4 @@
+export * from "./achievement/achievement-engine.js";
 export * from "./config/config-error.js";
 export * from "./config/config-loader.js";
 export * from "./config/config-validator.js";
