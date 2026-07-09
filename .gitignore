@@ -3,3 +3,9 @@ dist/
 coverage/
 .DS_Store
 *.log
+
+# Generated journey output. User forks can commit these via the workflow.
+data/state.json
+data/daily-log.json
+data/events.json
+output/journey.svg
