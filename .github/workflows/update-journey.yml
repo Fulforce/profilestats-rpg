@@ -27,6 +27,6 @@ jobs:
         run: npm run check
 
       - name: Generate journey
-        run: npm start
+        run: npm run update
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

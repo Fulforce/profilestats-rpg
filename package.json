@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc --noEmit",
     "start": "tsx src/cli.ts",
+    "update": "tsx src/update.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
