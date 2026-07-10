@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
 import { runUpdate } from "../src/update/update-runner.js";
-import type { Activity } from "../src/domain/types.js";
+import type { Activity, ActivityReport } from "../src/domain/types.js";
 import type { DailyLogEntry, StoredState } from "../src/storage/types.js";
 
 const activity: Activity = {
@@ -18,6 +18,16 @@ const activity: Activity = {
   streaks: 3
 };
 
+const activityReport: ActivityReport = {
+  counts: activity,
+  githubUser: "octocat",
+  window: { from: "2026-01-01", to: "2026-07-09" },
+  collectedAt: "2026-07-09T12:00:00.000Z",
+  source: "github-public-api",
+  complete: true,
+  warnings: []
+};
+
 describe("runUpdate", () => {
   it("runs the full pipeline and writes storage files", async () => {
     const dataDir = await mkdtemp(join(tmpdir(), "profilestats-rpg-update-"));
@@ -26,7 +36,7 @@ describe("runUpdate", () => {
       dataDir,
       outputDir,
       date: new Date("2026-07-09T12:00:00Z"),
-      activityProvider: async () => activity
+      activityProvider: async () => activityReport
     });
 
     const state = JSON.parse(await readFile(join(dataDir, "state.json"), "utf8")) as StoredState;
@@ -36,17 +46,23 @@ describe("runUpdate", () => {
     const svg = await readFile(join(outputDir, "journey.svg"), "utf8");
 
     expect(summary.snapshot.state).toMatchObject({
-      xp: 2775,
+      xp: 3000,
       title: "Wanderer",
       currentLocation: "Bree",
       nextLocation: "Weathertop",
       achievementCount: 5
     });
-    expect(state.xp).toBe(2775);
+    expect(state.xp).toBe(3000);
+    expect(state.activityReport.complete).toBe(true);
+    expect(state.xpBreakdown).toMatchObject({
+      ruleSetVersion: "1.0.0",
+      rawXP: 3000,
+      awardedXP: 3000
+    });
     expect(dailyLog).toHaveLength(1);
     expect(dailyLog[0]).toMatchObject({
       date: "2026-07-09",
-      xp: 2775,
+      xp: 3000,
       title: "Wanderer"
     });
     expect(svg).toContain("Middle-earth Journey");
@@ -74,13 +90,13 @@ describe("runUpdate", () => {
       dataDir,
       outputDir,
       date: new Date("2026-07-09T12:00:00Z"),
-      activityProvider: async () => activity
+      activityProvider: async () => activityReport
     });
     const second = await runUpdate({
       dataDir,
       outputDir,
       date: new Date("2026-07-09T14:00:00Z"),
-      activityProvider: async () => activity
+      activityProvider: async () => activityReport
     });
 
     const eventKeys = second.snapshot.events.map((event) => `${event.type}:${event.value}`);

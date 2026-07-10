@@ -1,4 +1,4 @@
-import type { Activity, Event } from "../domain/types.js";
+import type { ActivityReport, Event } from "../domain/types.js";
 import type { AppConfig } from "../config/types.js";
 import type { StorageSnapshot } from "../storage/types.js";
 
@@ -6,7 +6,8 @@ export type ActivityProvider = (options: {
   githubUser: string;
   startDate: string;
   token?: string;
-}) => Promise<Activity>;
+  date?: Date;
+}) => Promise<ActivityReport>;
 
 export type UpdateRunnerOptions = {
   configPath?: string;

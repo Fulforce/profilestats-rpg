@@ -3,8 +3,13 @@ import { loadConfig } from "../config/config-loader.js";
 import type { Event } from "../domain/types.js";
 import { collectActivity } from "../github/activity-collector.js";
 import { calculateJourneyState } from "../journey/journey-engine.js";
-import { buildStorageSnapshot, readStorage, writeStorageSnapshot } from "../storage/storage-engine.js";
-import { writeJourneySvg } from "../svg/svg-writer.js";
+import {
+  buildStorageArtifacts,
+  buildStorageSnapshot,
+  readStorage
+} from "../storage/storage-engine.js";
+import { buildJourneySvgArtifact } from "../svg/svg-writer.js";
+import { writeFilesTransaction } from "../io/transactional-files.js";
 import type { PreviousStorage } from "../storage/types.js";
 import { loadTheme } from "../theme/theme-loader.js";
 import type { Theme } from "../theme/types.js";
@@ -21,31 +26,33 @@ export async function runUpdate(options: UpdateRunnerOptions = {}): Promise<Upda
   const activity = await activityProvider({
     githubUser: config.githubUser,
     startDate: config.journey.startDate,
-    token: options.token
+    token: options.token,
+    date: options.date
   });
 
-  const xp = calculateXP(activity, config.journey.xpMultiplier);
-  const journey = calculateJourneyState(xp.finalXP, theme.map, config.journey.targetXP);
+  const xp = calculateXP(activity.counts, config.journey.xpMultiplier);
+  const journey = calculateJourneyState(xp.awardedXP, theme.map, config.journey.targetXP);
   const title = calculateTitleResult(
-    xp.finalXP,
+    xp.awardedXP,
     theme.titles,
     previouslyUnlockedTitles,
     options.date
   );
   const achievements = calculateAchievementResult(
     theme.achievements,
-    { xp: xp.finalXP, activity, journey },
+    { xp: xp.awardedXP, activity: activity.counts, journey },
     getPreviouslyUnlockedAchievements(previous),
     options.date
   );
   const generatedEvents = [
     ...buildTitleEvents(title.unlockedTitles, previouslyUnlockedTitles, options.date ?? new Date()),
-    ...buildLocationEvents(theme, xp.finalXP, options.date ?? new Date())
+    ...buildLocationEvents(theme, xp.awardedXP, options.date ?? new Date())
   ];
   const snapshot = buildStorageSnapshot(
     {
       config,
       activity,
+      xp,
       journey,
       title,
       achievements,
@@ -55,8 +62,11 @@ export async function runUpdate(options: UpdateRunnerOptions = {}): Promise<Upda
     previous
   );
 
-  await writeStorageSnapshot(snapshot, options.dataDir);
-  await writeJourneySvg(snapshot.state, theme, options.outputDir);
+  const artifacts = [
+    ...buildStorageArtifacts(snapshot, options.dataDir),
+    buildJourneySvgArtifact(snapshot.state, theme, options.outputDir)
+  ];
+  await writeFilesTransaction(artifacts);
 
   return {
     config,
@@ -65,8 +75,8 @@ export async function runUpdate(options: UpdateRunnerOptions = {}): Promise<Upda
   };
 }
 
-const defaultActivityProvider: ActivityProvider = async ({ githubUser, startDate, token }) =>
-  collectActivity({ githubUser, startDate, token });
+const defaultActivityProvider: ActivityProvider = async ({ githubUser, startDate, token, date }) =>
+  collectActivity({ githubUser, startDate, token, date });
 
 function getPreviouslyUnlockedTitles(previous: PreviousStorage, theme: Theme): string[] {
   const eventTitles = previous.events

@@ -35,6 +35,33 @@ const state: StoredState = {
     repositoriesCreated: 3,
     releasesPublished: 5,
     streaks: 12
+  },
+  activityReport: {
+    counts: {
+      commits: 1204,
+      prsOpened: 75,
+      prsMerged: 42,
+      issuesOpened: 28,
+      issuesClosed: 41,
+      reviewsSubmitted: 67,
+      repositoriesCreated: 3,
+      releasesPublished: 5,
+      streaks: 12
+    },
+    githubUser: "octocat",
+    window: { from: "2026-01-01", to: "2026-07-09" },
+    collectedAt: "2026-07-09T12:00:00.000Z",
+    source: "github-public-api",
+    complete: true,
+    warnings: []
+  },
+  xpBreakdown: {
+    ruleSetVersion: "1.0.0",
+    sources: [],
+    rawXP: 12450,
+    multiplier: 1,
+    calculatedXP: 12450,
+    awardedXP: 12450
   }
 };
 
@@ -54,11 +81,11 @@ describe("renderJourneySvg", () => {
     expect(svg).toContain("Journey Started");
     expect(svg).toContain("XP Sources");
     expect(svg).toContain("Pull requests");
-    expect(svg).toContain("+3,600 XP");
+    expect(svg).toContain("+3,180 XP");
+    expect(svg).toContain("Commits");
+    expect(svg).toContain("+2,408 XP");
     expect(svg).toContain("Streaks");
     expect(svg).toContain("+2,400 XP");
-    expect(svg).toContain("Reviews");
-    expect(svg).toContain("+1,675 XP");
     expect(svg).toContain("Rivendell");
     expect(svg).toContain("Dead Marshes");
     expect(svg).toContain("Shelob");

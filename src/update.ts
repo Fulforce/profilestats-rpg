@@ -14,6 +14,8 @@ console.log(
       currentLocation: summary.snapshot.state.currentLocation,
       progressPercent: summary.snapshot.state.progressPercent,
       achievementCount: summary.snapshot.state.achievementCount,
+      activityComplete: summary.snapshot.state.activityReport.complete,
+      collectionWarnings: summary.snapshot.state.activityReport.warnings,
       eventCount: summary.snapshot.events.length
     },
     null,

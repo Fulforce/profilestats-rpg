@@ -70,4 +70,36 @@ describe("validateConfig", () => {
       "display.showStats"
     ]);
   });
+
+  it("rejects unknown keys and theme path traversal", () => {
+    const issues = validateConfig(
+      {
+        githubUser: "octocat",
+        theme: "../private-theme",
+        unexpected: true,
+        journey: {
+          startDate: "2026-01-01",
+          targetXP: 50000,
+          xpMultiplier: 1,
+          typoMultiplier: 2
+        },
+        display: {
+          showStats: true,
+          showTitle: true,
+          showAchievements: true,
+          rawHtml: "<script>"
+        }
+      },
+      today
+    );
+
+    expect(issues).toEqual(
+      expect.arrayContaining([
+        { path: "config.unexpected", message: "is not supported" },
+        { path: "theme", message: "must be a lowercase theme identifier" },
+        { path: "journey.typoMultiplier", message: "is not supported" },
+        { path: "display.rawHtml", message: "is not supported" }
+      ])
+    );
+  });
 });

@@ -6,7 +6,7 @@ This roadmap sequences the unpublished MVP prototype into the first public relea
 
 ## Phase 0: Specification Baseline
 
-Status: specified.
+Status: complete.
 
 - adopt the future-state specifications as the target contract;
 - add a specification index and link implementation issues to acceptance criteria;
@@ -16,6 +16,8 @@ Status: specified.
 Exit criteria: maintainers can distinguish unpublished prototype behavior from the first public contract without ambiguity.
 
 ## Phase 1: Correctness And Safety Foundation
+
+Status: complete.
 
 - introduce version-1 runtime types and validation;
 - make storage updates transactional;

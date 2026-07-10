@@ -21,10 +21,10 @@ const emptyActivity: Activity = {
 const config = await loadConfig();
 const theme = await loadTheme(config.theme);
 const xp = calculateXP(emptyActivity, config.journey.xpMultiplier);
-const journey = calculateJourneyState(xp.finalXP, theme.map, config.journey.targetXP);
-const title = calculateTitleResult(xp.finalXP, theme.titles);
+const journey = calculateJourneyState(xp.awardedXP, theme.map, config.journey.targetXP);
+const title = calculateTitleResult(xp.awardedXP, theme.titles);
 const achievements = calculateAchievementResult(theme.achievements, {
-  xp: xp.finalXP,
+  xp: xp.awardedXP,
   activity: emptyActivity,
   journey
 });
