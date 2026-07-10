@@ -102,8 +102,7 @@ function renderJourneyMap(view: RenderViewModel): string {
   const routeEnd = 1145;
   const routeY = 326;
   const route = createRouteScale(view.route, routeStart, routeEnd);
-  const current = view.route.find((location) => location.status === "current") ?? view.route[0];
-  const currentX = route.scaleX(current?.x ?? view.progress.characterX);
+  const currentX = route.scaleX(view.progress.characterX);
   const completed = view.progress.status === "COMPLETED";
   const labels = placeLabels(view.route, route.scaleX, routeStart, routeEnd);
 
@@ -113,14 +112,12 @@ function renderJourneyMap(view: RenderViewModel): string {
     `<line x1="${routeStart}" y1="${routeY}" x2="${completed ? routeEnd : currentX}" y2="${routeY}" stroke="${palette.primary}" stroke-width="7" stroke-linecap="round"/>`,
     ...view.route.map((location) => {
       const x = route.scaleX(location.x);
-      if (location.status === "current") {
-        return `<path d="M ${x} ${routeY - 11} L ${x + 11} ${routeY} L ${x} ${routeY + 11} L ${x - 11} ${routeY} Z" fill="${palette.accent}" stroke="${palette.text}" stroke-width="2"/>`;
-      }
       if (location.status === "future") {
         return `<circle cx="${x}" cy="${routeY}" r="6" fill="${palette.background}" stroke="${palette.secondary}" stroke-width="2"/>`;
       }
       return `<circle cx="${x}" cy="${routeY}" r="6" fill="${palette.primary}" stroke="${palette.background}" stroke-width="2"/><path d="M ${x - 3} ${routeY} l 2 2 l 4 -5" fill="none" stroke="${palette.background}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
     }),
+    `<path d="M ${currentX} ${routeY - 11} L ${currentX + 11} ${routeY} L ${currentX} ${routeY + 11} L ${currentX - 11} ${routeY} Z" fill="${palette.accent}" stroke="${palette.text}" stroke-width="2"/>`,
     ...labels.map(
       (label) =>
         `<text x="${label.x}" y="${label.y}" text-anchor="middle" fill="${palette.text}" font-size="11" font-weight="700">${escapeXml(truncate(label.name, 18))}</text>`
@@ -228,35 +225,14 @@ function placeLabels(
   minX: number,
   maxX: number
 ): Array<{ name: string; x: number; y: number }> {
-  const occupied: Array<{ left: number; right: number; y: number }> = [];
-  const selected: Array<{ name: string; x: number; y: number }> = [];
-  const candidates = locations
-    .filter((location) => location.labelPriority !== undefined)
-    .sort(
-      (a, b) =>
-        (a.labelPriority ?? 99) - (b.labelPriority ?? 99) || a.x - b.x || a.id.localeCompare(b.id)
-    );
-
-  for (const location of candidates) {
+  const rows = [284, 300, 357, 373];
+  return locations.map((location, index) => {
     const markerX = scaleX(location.x);
     const halfWidth = Math.min(58, Math.max(22, truncate(location.name, 18).length * 3.2));
     const x = Math.max(minX + halfWidth, Math.min(maxX - halfWidth, markerX));
-    const ys = location.labelPriority && location.labelPriority <= 2 ? [357, 303] : [303, 357];
-    const y = ys.find(
-      (candidateY) =>
-        !occupied.some(
-          (box) =>
-            Math.abs(box.y - candidateY) < 15 &&
-            x - halfWidth < box.right + 8 &&
-            x + halfWidth > box.left - 8
-        )
-    );
-    if (y === undefined) continue;
-    occupied.push({ left: x - halfWidth, right: x + halfWidth, y });
-    selected.push({ name: location.name, x, y });
-  }
-
-  return selected.sort((a, b) => a.x - b.x || a.y - b.y);
+    const y = rows[index % rows.length];
+    return { name: location.name, x, y };
+  });
 }
 
 function createRouteScale(
