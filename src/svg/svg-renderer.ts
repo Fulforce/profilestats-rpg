@@ -225,14 +225,37 @@ function placeLabels(
   minX: number,
   maxX: number
 ): Array<{ name: string; x: number; y: number }> {
-  const rows = [284, 300, 357, 373];
-  return locations.map((location, index) => {
+  const rows = [357, 373, 389, 405];
+  const occupied: Array<{ left: number; right: number; y: number }> = [];
+  const selected: Array<{ name: string; x: number; y: number }> = [];
+  const candidates = locations
+    .filter((location) => location.labelPriority !== undefined)
+    .sort(
+      (a, b) =>
+        (a.labelPriority ?? 99) - (b.labelPriority ?? 99) || a.x - b.x || a.id.localeCompare(b.id)
+    );
+
+  for (const location of candidates) {
     const markerX = scaleX(location.x);
     const halfWidth = Math.min(58, Math.max(22, truncate(location.name, 18).length * 3.2));
     const x = Math.max(minX + halfWidth, Math.min(maxX - halfWidth, markerX));
-    const y = rows[index % rows.length];
-    return { name: location.name, x, y };
-  });
+    const preferredRows =
+      location.labelPriority && location.labelPriority <= 2 ? [357, 373, 389, 405] : rows;
+    const y = preferredRows.find(
+      (candidateY) =>
+        !occupied.some(
+          (box) =>
+            Math.abs(box.y - candidateY) < 15 &&
+            x - halfWidth < box.right + 8 &&
+            x + halfWidth > box.left - 8
+        )
+    );
+    if (y === undefined) continue;
+    occupied.push({ left: x - halfWidth, right: x + halfWidth, y });
+    selected.push({ name: location.name, x, y });
+  }
+
+  return selected.sort((a, b) => a.x - b.x || a.y - b.y);
 }
 
 function createRouteScale(

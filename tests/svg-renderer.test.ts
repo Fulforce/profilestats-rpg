@@ -41,9 +41,7 @@ describe("renderJourneySvg", () => {
     expect(svg).toContain("Lothlorien");
     expect(svg).toContain("Amon Hen");
     expect(svg).toContain("The Shire");
-    expect(svg).toContain("Weathertop");
-    expect(svg).toContain("Dead Marshes");
-    expect(svg).toContain("Shelob&apos;s Lair");
+    expect(svg).toContain("Mount Doom");
     expect(svg).toContain("PRs merged");
     expect(svg).toContain("42");
     expect(svg).toContain("+2,520 XP");
