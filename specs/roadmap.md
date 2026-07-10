@@ -32,6 +32,8 @@ Exit criteria: a failed or partial collection cannot corrupt previous artifacts 
 
 ## Phase 2: Campaign Lifecycle And History
 
+Status: complete.
+
 - implement configuration schema version 1 and preferred config discovery;
 - replace prototype configuration and storage with the public contracts;
 - add stable journey IDs and immutable campaign definitions;

@@ -1,0 +1,23 @@
+schemaVersion: 1
+
+profile:
+  githubUser: "octocat"
+
+theme:
+  id: "middle-earth"
+
+journey:
+  id: "road-to-mordor-2026"
+  startDate: "2026-01-01"
+  targetXP: 50000
+  xpMultiplier: 1.0
+
+display:
+  layout: "standard"
+  showStats: true
+  showTitle: true
+  showAchievements: true
+
+output:
+  svgPath: "output/journey.svg"
+  dataDirectory: "data"

@@ -116,7 +116,7 @@ describe("writeJourneySvg", () => {
   it("writes output/journey.svg", async () => {
     const theme = await loadTheme("middle-earth");
     const outputDir = await mkdtemp(join(tmpdir(), "profilestats-rpg-svg-"));
-    const outputPath = await writeJourneySvg(state, theme, outputDir);
+    const outputPath = await writeJourneySvg(state, theme, join(outputDir, "journey.svg"));
 
     expect(outputPath.endsWith("journey.svg")).toBe(true);
     await expect(readFile(outputPath, "utf8")).resolves.toContain("Middle-earth Journey");

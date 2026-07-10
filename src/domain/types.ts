@@ -51,6 +51,72 @@ export type XPResult = {
   awardedXP: number;
 };
 
+export type JourneyStatus = "ACTIVE" | "COMPLETED";
+
+export type JourneyDefinition = {
+  id: string;
+  startDate: string;
+  targetXP: number;
+  xpMultiplier: number;
+  themeId: string;
+  themeVersion: string;
+  xpRuleSetVersion: string;
+};
+
+export type JourneyLocationSnapshot = {
+  id: string;
+  name: string;
+  requiredXP: number;
+  x: number;
+};
+
+export type JourneyProgress = {
+  journeyId: string;
+  status: JourneyStatus;
+  xp: number;
+  targetXP: number;
+  progressPercent: number;
+  currentLocationId: string;
+  nextLocationId?: string;
+  characterX: number;
+  segmentProgressPercent: number;
+  startedAt: string;
+  completedAt?: string;
+};
+
+export type StoredAchievementUnlock = {
+  achievementId: string;
+  name: string;
+  description: string;
+  unlockedAt: string;
+};
+
+export type JourneyRecord = {
+  definition: JourneyDefinition;
+  progress: JourneyProgress;
+  activity: ActivityReport;
+  xp: XPResult;
+  titleId: string;
+  titleName: string;
+  achievements: StoredAchievementUnlock[];
+  route: JourneyLocationSnapshot[];
+  themeName: string;
+  lastUpdated: string;
+};
+
+export type JourneyEvent = {
+  id: string;
+  journeyId: string;
+  occurredAt: string;
+  type:
+    | "JOURNEY_STARTED"
+    | "LOCATION_UNLOCKED"
+    | "TITLE_UNLOCKED"
+    | "ACHIEVEMENT_UNLOCKED"
+    | "JOURNEY_COMPLETED";
+  value: string;
+};
+
 export type JourneyState = {
   xp: number;
   targetXP: number;
@@ -61,6 +127,7 @@ export type JourneyState = {
   nextLocationName?: string;
   characterX: number;
   segmentProgressPercent: number;
+  effectiveLocations: JourneyLocationSnapshot[];
 };
 
 export type Title = {

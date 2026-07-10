@@ -1,242 +1,191 @@
 import { mkdtemp, readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import type { JourneyEvent, JourneyRecord } from "../src/domain/types.js";
 import {
   buildStorageSnapshot,
   getSnapshotForDate,
-  persistStorageUpdate,
-  readStorage
+  readStorage,
+  toRenderState,
+  writeStorageSnapshot
 } from "../src/storage/storage-engine.js";
-import type {
-  Activity,
-  ActivityReport,
-  AchievementResult,
-  JourneyState,
-  TitleResult,
-  XPResult
-} from "../src/domain/types.js";
-import type { AppConfig } from "../src/config/types.js";
 import type { PreviousStorage } from "../src/storage/types.js";
 
-const config: AppConfig = {
-  githubUser: "octocat",
-  theme: "middle-earth",
-  journey: {
+const activeRecord: JourneyRecord = {
+  definition: {
+    id: "road-to-mordor-2026",
     startDate: "2026-01-01",
     targetXP: 50000,
-    xpMultiplier: 1
+    xpMultiplier: 1,
+    themeId: "middle-earth",
+    themeVersion: "1.0.0",
+    xpRuleSetVersion: "1.0.0"
   },
-  display: {
-    showStats: true,
-    showTitle: true,
-    showAchievements: true
-  }
-};
-
-const activity: Activity = {
-  commits: 100,
-  prsOpened: 4,
-  prsMerged: 2,
-  issuesOpened: 3,
-  issuesClosed: 1,
-  reviewsSubmitted: 5,
-  repositoriesCreated: 1,
-  releasesPublished: 0,
-  streaks: 1
-};
-
-const activityReport: ActivityReport = {
-  counts: activity,
-  githubUser: "octocat",
-  window: { from: "2026-01-01", to: "2026-07-09" },
-  collectedAt: "2026-07-09T12:00:00.000Z",
-  source: "github-public-api",
-  complete: true,
-  warnings: []
-};
-
-const xp: XPResult = {
-  ruleSetVersion: "1.0.0",
-  sources: [],
-  rawXP: 1500,
-  multiplier: 1,
-  calculatedXP: 1500,
-  awardedXP: 1500
-};
-
-const journey: JourneyState = {
-  xp: 1500,
-  targetXP: 50000,
-  progressPercent: 3,
-  currentLocationId: "BREE",
-  currentLocationName: "Bree",
-  nextLocationId: "WEATHERTOP",
-  nextLocationName: "Weathertop",
-  characterX: 88,
-  segmentProgressPercent: 60
-};
-
-const title: TitleResult = {
-  currentTitleId: "WANDERER",
-  currentTitleName: "Wanderer",
-  unlockedTitles: ["HOBBIT", "WANDERER"],
-  newlyUnlockedTitle: "WANDERER",
-  event: {
-    date: "2026-07-09",
-    type: "TITLE_UNLOCKED",
-    value: "WANDERER"
-  }
-};
-
-const achievements: AchievementResult = {
-  achievements: ["XP_1000", "FIRST_PR_MERGED"],
-  unlockedThisRun: ["FIRST_PR_MERGED"],
-  achievementCount: 2,
-  events: [
+  progress: {
+    journeyId: "road-to-mordor-2026",
+    status: "ACTIVE",
+    xp: 1500,
+    targetXP: 50000,
+    progressPercent: 3,
+    currentLocationId: "BREE",
+    nextLocationId: "WEATHERTOP",
+    characterX: 88,
+    segmentProgressPercent: 60,
+    startedAt: "2026-01-01"
+  },
+  activity: {
+    counts: {
+      commits: 100,
+      prsOpened: 4,
+      prsMerged: 2,
+      issuesOpened: 3,
+      issuesClosed: 1,
+      reviewsSubmitted: 5,
+      repositoriesCreated: 1,
+      releasesPublished: 0,
+      streaks: 1
+    },
+    githubUser: "octocat",
+    window: { from: "2026-01-01", to: "2026-07-09" },
+    collectedAt: "2026-07-09T12:00:00.000Z",
+    source: "github-public-api",
+    complete: true,
+    warnings: []
+  },
+  xp: {
+    ruleSetVersion: "1.0.0",
+    sources: [],
+    rawXP: 1500,
+    multiplier: 1,
+    calculatedXP: 1500,
+    awardedXP: 1500
+  },
+  titleId: "WANDERER",
+  titleName: "Wanderer",
+  achievements: [
     {
-      date: "2026-07-09",
-      type: "ACHIEVEMENT_UNLOCKED",
-      value: "FIRST_PR_MERGED"
+      achievementId: "XP_1000",
+      name: "First Footsteps",
+      description: "Earn 1,000 XP.",
+      unlockedAt: "2026-07-09T12:00:00.000Z"
     }
-  ]
+  ],
+  route: [
+    { id: "SHIRE", name: "The Shire", requiredXP: 0, x: 40 },
+    { id: "BREE", name: "Bree", requiredXP: 1000, x: 80 },
+    { id: "WEATHERTOP", name: "Weathertop", requiredXP: 2000, x: 120 }
+  ],
+  themeName: "Middle-earth",
+  lastUpdated: "2026-07-09T12:00:00.000Z"
+};
+
+const startEvent: JourneyEvent = {
+  id: "road-to-mordor-2026:JOURNEY_STARTED:road-to-mordor-2026",
+  journeyId: "road-to-mordor-2026",
+  occurredAt: "2026-07-09T12:00:00.000Z",
+  type: "JOURNEY_STARTED",
+  value: "road-to-mordor-2026"
+};
+
+const emptyStorage: PreviousStorage = {
+  journeys: { schemaVersion: 1, journeys: [] },
+  dailyLog: { schemaVersion: 1, snapshots: [] },
+  events: { schemaVersion: 1, events: [] }
 };
 
 describe("buildStorageSnapshot", () => {
-  it("builds state, daily log, and deduplicated events", () => {
-    const previous: PreviousStorage = {
-      dailyLog: [
-        {
-          date: "2026-07-09",
-          xp: 1000,
-          title: "Hobbit",
-          currentLocation: "The Shire",
-          nextLocation: "Bree",
-          progressPercent: 2,
-          characterX: 50,
-          segmentProgressPercent: 20,
-          achievementCount: 1,
-          achievements: ["XP_1000"],
-          stats: { ...activity, prsMerged: 0 },
-          activityReport: {
-            ...activityReport,
-            counts: { ...activity, prsMerged: 0 }
-          },
-          xpBreakdown: { ...xp, calculatedXP: 1000, awardedXP: 1000 }
-        }
-      ],
-      events: [
-        {
-          date: "2026-07-01",
-          type: "ACHIEVEMENT_UNLOCKED",
-          value: "FIRST_PR_MERGED"
-        }
-      ]
-    };
-
+  it("builds versioned state, history, daily log, and event documents", () => {
     const snapshot = buildStorageSnapshot(
       {
-        config,
-        activity: activityReport,
-        xp,
-        journey,
-        title,
-        achievements,
-        date: new Date("2026-07-09T12:00:00Z")
+        githubUser: "octocat",
+        current: activeRecord,
+        newEvents: [startEvent, startEvent]
       },
-      previous
+      emptyStorage
     );
 
     expect(snapshot.state).toMatchObject({
-      metadata: {
-        theme: "middle-earth",
-        githubUser: "octocat",
-        journeyStartDate: "2026-01-01",
-        targetXP: 50000,
-        xpMultiplier: 1
-      },
-      lastUpdated: "2026-07-09",
+      schemaVersion: 1,
+      profile: { githubUser: "octocat" },
+      current: { definition: { id: "road-to-mordor-2026" } }
+    });
+    expect(snapshot.journeys.journeys).toEqual([]);
+    expect(snapshot.dailyLog.snapshots).toHaveLength(1);
+    expect(snapshot.events.events).toEqual([startEvent]);
+    expect(
+      getSnapshotForDate(snapshot.dailyLog, "road-to-mordor-2026", "2026-07-09")
+    ).toMatchObject({ awardedXP: 1500, locationId: "BREE" });
+  });
+
+  it("archives a completed journey exactly once", () => {
+    const completed: JourneyRecord = {
+      ...activeRecord,
+      progress: {
+        ...activeRecord.progress,
+        status: "COMPLETED",
+        xp: 50000,
+        progressPercent: 100,
+        currentLocationId: "WEATHERTOP",
+        nextLocationId: undefined,
+        completedAt: "2026-07-09T12:00:00.000Z"
+      }
+    };
+    const first = buildStorageSnapshot({ githubUser: "octocat", current: completed }, emptyStorage);
+    const second = buildStorageSnapshot(
+      { githubUser: "octocat", current: completed },
+      {
+        state: first.state,
+        journeys: first.journeys,
+        dailyLog: first.dailyLog,
+        events: first.events
+      }
+    );
+
+    expect(second.journeys.journeys).toHaveLength(1);
+    expect(second.journeys.journeys[0]).toMatchObject({
+      archiveReason: "COMPLETED",
+      archivedAt: "2026-07-09T12:00:00.000Z"
+    });
+  });
+
+  it("adapts the persisted contract for the current renderer", () => {
+    const snapshot = buildStorageSnapshot(
+      { githubUser: "octocat", current: activeRecord },
+      emptyStorage
+    );
+
+    expect(toRenderState(snapshot.state)).toMatchObject({
       xp: 1500,
       title: "Wanderer",
       currentLocation: "Bree",
       nextLocation: "Weathertop",
-      achievementCount: 2
-    });
-    expect(snapshot.dailyLog).toHaveLength(1);
-    expect(snapshot.dailyLog[0]).toMatchObject({
-      date: "2026-07-09",
-      xp: 1500,
-      title: "Wanderer",
-      currentLocation: "Bree"
-    });
-    expect(snapshot.events).toEqual([
-      {
-        date: "2026-07-01",
-        type: "ACHIEVEMENT_UNLOCKED",
-        value: "FIRST_PR_MERGED"
-      },
-      {
-        date: "2026-07-09",
-        type: "TITLE_UNLOCKED",
-        value: "WANDERER"
-      }
-    ]);
-  });
-
-  it("supports historical snapshot lookup by date", () => {
-    const snapshot = buildStorageSnapshot({
-      config,
-      activity: activityReport,
-      xp,
-      journey,
-      title,
-      achievements,
-      date: new Date("2026-07-09T12:00:00Z")
-    });
-
-    expect(getSnapshotForDate(snapshot.dailyLog, "2026-07-09")).toMatchObject({
-      date: "2026-07-09",
-      currentLocation: "Bree"
+      achievements: ["XP_1000"]
     });
   });
 });
 
-describe("persistStorageUpdate", () => {
-  it("writes state, daily log, and events files", async () => {
+describe("storage persistence", () => {
+  it("writes and reloads all four versioned documents", async () => {
     const dataDir = await mkdtemp(join(tmpdir(), "profilestats-rpg-storage-"));
-
-    await persistStorageUpdate(
-      {
-        config,
-        activity: activityReport,
-        xp,
-        journey,
-        title,
-        achievements,
-        date: new Date("2026-07-09T12:00:00Z")
-      },
-      dataDir
+    const snapshot = buildStorageSnapshot(
+      { githubUser: "octocat", current: activeRecord, newEvents: [startEvent] },
+      emptyStorage
     );
+    await writeStorageSnapshot(snapshot, dataDir);
 
-    const state = JSON.parse(await readFile(join(dataDir, "state.json"), "utf8")) as {
-      title: string;
-    };
-    const dailyLog = JSON.parse(
-      await readFile(join(dataDir, "daily-log.json"), "utf8")
-    ) as unknown[];
-    const events = JSON.parse(await readFile(join(dataDir, "events.json"), "utf8")) as unknown[];
-
-    expect(state.title).toBe("Wanderer");
-    expect(dailyLog).toHaveLength(1);
-    expect(events).toHaveLength(2);
+    const reloaded = await readStorage(dataDir);
+    expect(reloaded.state?.current.definition.id).toBe("road-to-mordor-2026");
+    expect(reloaded.events.events).toEqual([startEvent]);
+    await expect(readFile(join(dataDir, "journeys.json"), "utf8")).resolves.toContain(
+      '"schemaVersion": 1'
+    );
   });
 
   it("rejects malformed persisted data with a stable error", async () => {
     const dataDir = await mkdtemp(join(tmpdir(), "profilestats-rpg-storage-invalid-"));
-    await writeFile(join(dataDir, "daily-log.json"), JSON.stringify({ not: "an array" }));
+    await writeFile(join(dataDir, "daily-log.json"), JSON.stringify({ not: "a document" }));
 
-    await expect(readStorage(dataDir)).rejects.toMatchObject({
-      code: "STORAGE_INVALID"
-    });
+    await expect(readStorage(dataDir)).rejects.toMatchObject({ code: "STORAGE_INVALID" });
   });
 });

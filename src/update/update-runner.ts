@@ -1,130 +1,111 @@
+import { join } from "node:path";
 import { calculateAchievementResult } from "../achievement/achievement-engine.js";
 import { loadConfig } from "../config/config-loader.js";
-import type { Event } from "../domain/types.js";
 import { collectActivity } from "../github/activity-collector.js";
+import { writeFilesTransaction } from "../io/transactional-files.js";
 import { calculateJourneyState } from "../journey/journey-engine.js";
+import {
+  applyMonotonicXP,
+  buildJourneyEvents,
+  buildJourneyRecord,
+  getPreviouslyUnlockedTitleIds,
+  planJourneyRun,
+  scaleTitles
+} from "../journey/journey-lifecycle.js";
 import {
   buildStorageArtifacts,
   buildStorageSnapshot,
-  readStorage
+  readStorage,
+  toRenderState
 } from "../storage/storage-engine.js";
 import { buildJourneySvgArtifact } from "../svg/svg-writer.js";
-import { writeFilesTransaction } from "../io/transactional-files.js";
-import type { PreviousStorage } from "../storage/types.js";
 import { loadTheme } from "../theme/theme-loader.js";
-import type { Theme } from "../theme/types.js";
 import { calculateTitleResult } from "../title/title-engine.js";
 import type { ActivityProvider, UpdateRunnerOptions, UpdateSummary } from "./types.js";
 import { calculateXP } from "../xp/xp-engine.js";
 
 export async function runUpdate(options: UpdateRunnerOptions = {}): Promise<UpdateSummary> {
-  const config = await loadConfig(options.configPath);
-  const theme = await loadTheme(config.theme, options.themesRoot);
-  const previous = await readStorage(options.dataDir);
-  const previouslyUnlockedTitles = getPreviouslyUnlockedTitles(previous, theme);
+  const runDate = options.date ?? new Date();
+  const timestamp = runDate.toISOString();
+  const config = await loadConfig(options.configPath, runDate);
+  const theme = await loadTheme(config.theme.id, options.themesRoot);
+  const dataDirectory = options.dataDir ?? config.output.dataDirectory;
+  const svgPath =
+    options.svgPath ??
+    (options.outputDir ? join(options.outputDir, "journey.svg") : config.output.svgPath);
+  const previous = await readStorage(dataDirectory);
+  const plan = planJourneyRun(config, theme, previous, options.allowAbandon ?? false, timestamp);
+
+  if (plan.kind === "FROZEN") {
+    const snapshot = {
+      state: previous.state!,
+      journeys: previous.journeys,
+      dailyLog: previous.dailyLog,
+      events: previous.events
+    };
+    const renderState = toRenderState(snapshot.state);
+    await writeFilesTransaction([buildJourneySvgArtifact(renderState, theme, svgPath)]);
+    return { config, snapshot, generatedEvents: [] };
+  }
+
   const activityProvider = options.activityProvider ?? defaultActivityProvider;
   const activity = await activityProvider({
-    githubUser: config.githubUser,
+    githubUser: config.profile.githubUser,
     startDate: config.journey.startDate,
     token: options.token,
-    date: options.date
+    date: runDate
   });
-
-  const xp = calculateXP(activity.counts, config.journey.xpMultiplier);
+  const calculatedXP = calculateXP(activity.counts, config.journey.xpMultiplier);
+  const xp = applyMonotonicXP(calculatedXP, plan.previousRecord);
   const journey = calculateJourneyState(xp.awardedXP, theme.map, config.journey.targetXP);
-  const title = calculateTitleResult(
-    xp.awardedXP,
-    theme.titles,
-    previouslyUnlockedTitles,
-    options.date
-  );
+  const scaledTitles = scaleTitles(theme.titles, theme.map.targetXP, config.journey.targetXP);
+  const previouslyUnlockedTitles = getPreviouslyUnlockedTitleIds(previous, config.journey.id);
+  const title = calculateTitleResult(xp.awardedXP, scaledTitles, previouslyUnlockedTitles, runDate);
+  const previousAchievementIds =
+    plan.previousRecord?.achievements.map((achievement) => achievement.achievementId) ?? [];
   const achievements = calculateAchievementResult(
     theme.achievements,
     { xp: xp.awardedXP, activity: activity.counts, journey },
-    getPreviouslyUnlockedAchievements(previous),
-    options.date
+    previousAchievementIds,
+    runDate
   );
-  const generatedEvents = [
-    ...buildTitleEvents(title.unlockedTitles, previouslyUnlockedTitles, options.date ?? new Date()),
-    ...buildLocationEvents(theme, xp.awardedXP, options.date ?? new Date())
-  ];
+  const record = buildJourneyRecord({
+    config,
+    theme,
+    activity,
+    xp,
+    journey,
+    title,
+    achievements,
+    previousRecord: plan.previousRecord,
+    timestamp
+  });
+  const generatedEvents = buildJourneyEvents(
+    record,
+    title,
+    achievements,
+    previous,
+    plan.isNewJourney,
+    timestamp
+  );
   const snapshot = buildStorageSnapshot(
     {
-      config,
-      activity,
-      xp,
-      journey,
-      title,
-      achievements,
-      events: generatedEvents,
-      date: options.date
+      githubUser: config.profile.githubUser,
+      current: record,
+      archivedJourneys: plan.archivedJourneys,
+      newEvents: generatedEvents
     },
     previous
   );
-
+  const renderState = toRenderState(snapshot.state);
   const artifacts = [
-    ...buildStorageArtifacts(snapshot, options.dataDir),
-    buildJourneySvgArtifact(snapshot.state, theme, options.outputDir)
+    ...buildStorageArtifacts(snapshot, dataDirectory),
+    buildJourneySvgArtifact(renderState, theme, svgPath)
   ];
   await writeFilesTransaction(artifacts);
 
-  return {
-    config,
-    snapshot,
-    generatedEvents
-  };
+  return { config, snapshot, generatedEvents };
 }
 
 const defaultActivityProvider: ActivityProvider = async ({ githubUser, startDate, token, date }) =>
   collectActivity({ githubUser, startDate, token, date });
-
-function getPreviouslyUnlockedTitles(previous: PreviousStorage, theme: Theme): string[] {
-  const eventTitles = previous.events
-    .filter((event) => event.type === "TITLE_UNLOCKED")
-    .map((event) => event.value);
-  const stateDerivedTitles = previous.state
-    ? theme.titles
-        .filter((title) => title.requiredXP <= previous.state!.xp)
-        .map((title) => title.id)
-    : [];
-
-  return [...new Set([...eventTitles, ...stateDerivedTitles])];
-}
-
-function getPreviouslyUnlockedAchievements(previous: PreviousStorage): string[] {
-  const eventAchievements = previous.events
-    .filter((event) => event.type === "ACHIEVEMENT_UNLOCKED")
-    .map((event) => event.value);
-  const stateAchievements = previous.state?.achievements ?? [];
-
-  return [...new Set([...stateAchievements, ...eventAchievements])];
-}
-
-function buildLocationEvents(theme: Theme, xp: number, eventDate: Date): Event[] {
-  const date = eventDate.toISOString().slice(0, 10);
-
-  return theme.map.locations
-    .filter((location) => location.requiredXP <= xp)
-    .map((location) => ({
-      date,
-      type: "LOCATION_UNLOCKED" as const,
-      value: location.id
-    }));
-}
-
-function buildTitleEvents(
-  unlockedTitles: string[],
-  previouslyUnlockedTitles: string[],
-  eventDate: Date
-): Event[] {
-  const previous = new Set(previouslyUnlockedTitles);
-  const date = eventDate.toISOString().slice(0, 10);
-
-  return unlockedTitles
-    .filter((titleId) => !previous.has(titleId))
-    .map((titleId) => ({
-      date,
-      type: "TITLE_UNLOCKED" as const,
-      value: titleId
-    }));
-}

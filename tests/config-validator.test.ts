@@ -3,91 +3,89 @@ import { normalizeConfig, validateConfig } from "../src/config/config-validator.
 
 const today = new Date("2026-07-09T12:00:00.000Z");
 
-describe("validateConfig", () => {
-  it("accepts the MVP configuration shape", () => {
-    const issues = validateConfig(
-      {
-        githubUser: "octocat",
-        theme: "middle-earth",
-        journey: {
-          startDate: "2026-01-01",
-          targetXP: 50000,
-          xpMultiplier: 1
-        },
-        display: {
-          showStats: true,
-          showTitle: true,
-          showAchievements: true
-        }
-      },
-      today
-    );
+const validConfig = {
+  schemaVersion: 1,
+  profile: { githubUser: "octocat" },
+  theme: { id: "middle-earth" },
+  journey: {
+    id: "road-to-mordor-2026",
+    startDate: "2026-01-01",
+    targetXP: 50000,
+    xpMultiplier: 1
+  },
+  display: {
+    layout: "standard",
+    showStats: true,
+    showTitle: true,
+    showAchievements: true
+  },
+  output: {
+    svgPath: "output/journey.svg",
+    dataDirectory: "data"
+  }
+};
 
-    expect(issues).toEqual([]);
+describe("validateConfig", () => {
+  it("accepts the version-1 configuration contract", () => {
+    expect(validateConfig(validConfig, today)).toEqual([]);
   });
 
-  it("defaults the theme and display flags when optional values are omitted", () => {
+  it("applies display and output defaults", () => {
     const normalized = normalizeConfig({
-      githubUser: "octocat",
-      journey: {
-        startDate: "2026-01-01",
-        targetXP: 50000,
-        xpMultiplier: 1
-      }
+      ...validConfig,
+      display: undefined,
+      output: undefined
     });
 
-    expect(normalized.theme).toBe("middle-earth");
     expect(normalized.display).toEqual({
+      layout: "standard",
       showStats: true,
       showTitle: true,
       showAchievements: true
     });
+    expect(normalized.output).toEqual({
+      svgPath: "output/journey.svg",
+      dataDirectory: "data"
+    });
   });
 
-  it("rejects invalid user, date, target XP, and multiplier values", () => {
+  it("rejects invalid version, identity, date, target, and multiplier values", () => {
     const issues = validateConfig(
       {
-        githubUser: "-bad-user-",
-        theme: "",
+        ...validConfig,
+        schemaVersion: 2,
+        profile: { githubUser: "-bad-user-" },
+        theme: { id: "../private" },
         journey: {
+          id: "Bad ID",
           startDate: "2027-01-01",
           targetXP: 0,
-          xpMultiplier: -1
-        },
-        display: {
-          showStats: "yes"
+          xpMultiplier: 101
         }
       },
       today
     );
 
     expect(issues.map((issue) => issue.path)).toEqual([
-      "githubUser",
-      "theme",
+      "schemaVersion",
+      "profile.githubUser",
+      "theme.id",
+      "journey.id",
       "journey.startDate",
       "journey.targetXP",
-      "journey.xpMultiplier",
-      "display.showStats"
+      "journey.xpMultiplier"
     ]);
   });
 
-  it("rejects unknown keys and theme path traversal", () => {
+  it("rejects unknown keys and paths outside the repository", () => {
     const issues = validateConfig(
       {
-        githubUser: "octocat",
-        theme: "../private-theme",
+        ...validConfig,
         unexpected: true,
-        journey: {
-          startDate: "2026-01-01",
-          targetXP: 50000,
-          xpMultiplier: 1,
-          typoMultiplier: 2
-        },
-        display: {
-          showStats: true,
-          showTitle: true,
-          showAchievements: true,
-          rawHtml: "<script>"
+        output: {
+          svgPath: "../journey.svg",
+          dataDirectory: "/tmp/data",
+          rawHtml: true
         }
       },
       today
@@ -96,9 +94,9 @@ describe("validateConfig", () => {
     expect(issues).toEqual(
       expect.arrayContaining([
         { path: "config.unexpected", message: "is not supported" },
-        { path: "theme", message: "must be a lowercase theme identifier" },
-        { path: "journey.typoMultiplier", message: "is not supported" },
-        { path: "display.rawHtml", message: "is not supported" }
+        { path: "output.rawHtml", message: "is not supported" },
+        { path: "output.svgPath", message: "must stay inside the repository" },
+        { path: "output.dataDirectory", message: "must stay inside the repository" }
       ])
     );
   });

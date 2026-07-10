@@ -55,7 +55,11 @@ const journey: JourneyState = {
   nextLocationId: "LOTHLORIEN",
   nextLocationName: "Lothlorien",
   characterX: 400,
-  segmentProgressPercent: 0
+  segmentProgressPercent: 0,
+  effectiveLocations: [
+    { id: "MORIA", name: "Moria", requiredXP: 1500, x: 400 },
+    { id: "LOTHLORIEN", name: "Lothlorien", requiredXP: 2500, x: 500 }
+  ]
 };
 
 describe("calculateAchievementResult", () => {

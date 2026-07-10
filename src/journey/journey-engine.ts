@@ -1,5 +1,6 @@
-import type { JourneyState } from "../domain/types.js";
-import type { ThemeMap, ThemeMapLocation } from "../theme/types.js";
+import type { JourneyLocationSnapshot, JourneyState } from "../domain/types.js";
+import { AppError } from "../errors/app-error.js";
+import type { ThemeMap } from "../theme/types.js";
 
 export function calculateJourneyState(
   xp: number,
@@ -10,8 +11,9 @@ export function calculateJourneyState(
 
   const cappedXP = Math.min(xp, targetXP);
   const progressPercent = roundToOneDecimal((cappedXP / targetXP) * 100);
-  const currentLocation = findCurrentLocation(cappedXP, map.locations);
-  const nextLocation = findNextLocation(cappedXP, map.locations);
+  const effectiveLocations = scaleJourneyLocations(map, targetXP);
+  const currentLocation = findCurrentLocation(cappedXP, effectiveLocations);
+  const nextLocation = findNextLocation(cappedXP, effectiveLocations);
   const segmentProgressPercent = calculateSegmentProgressPercent(
     cappedXP,
     currentLocation,
@@ -28,11 +30,29 @@ export function calculateJourneyState(
     nextLocationId: nextLocation?.id,
     nextLocationName: nextLocation?.name,
     characterX,
-    segmentProgressPercent
+    segmentProgressPercent,
+    effectiveLocations
   };
 }
 
-function findCurrentLocation(xp: number, locations: ThemeMapLocation[]): ThemeMapLocation {
+export function scaleJourneyLocations(map: ThemeMap, targetXP: number): JourneyLocationSnapshot[] {
+  return map.locations.map((location, index) => ({
+    id: location.id,
+    name: location.name,
+    requiredXP:
+      index === 0
+        ? 0
+        : index === map.locations.length - 1
+          ? targetXP
+          : Math.round((location.requiredXP / map.targetXP) * targetXP),
+    x: location.x
+  }));
+}
+
+function findCurrentLocation(
+  xp: number,
+  locations: JourneyLocationSnapshot[]
+): JourneyLocationSnapshot {
   return locations.reduce((current, location) => {
     return location.requiredXP <= xp ? location : current;
   }, locations[0]);
@@ -40,15 +60,15 @@ function findCurrentLocation(xp: number, locations: ThemeMapLocation[]): ThemeMa
 
 function findNextLocation(
   xp: number,
-  locations: ThemeMapLocation[]
-): ThemeMapLocation | undefined {
+  locations: JourneyLocationSnapshot[]
+): JourneyLocationSnapshot | undefined {
   return locations.find((location) => location.requiredXP > xp);
 }
 
 function calculateSegmentProgressPercent(
   xp: number,
-  currentLocation: ThemeMapLocation,
-  nextLocation: ThemeMapLocation | undefined
+  currentLocation: JourneyLocationSnapshot,
+  nextLocation: JourneyLocationSnapshot | undefined
 ): number {
   if (!nextLocation) {
     return 100;
@@ -64,8 +84,8 @@ function calculateSegmentProgressPercent(
 }
 
 function calculateCharacterX(
-  currentLocation: ThemeMapLocation,
-  nextLocation: ThemeMapLocation | undefined,
+  currentLocation: JourneyLocationSnapshot,
+  nextLocation: JourneyLocationSnapshot | undefined,
   segmentProgressPercent: number
 ): number {
   if (!nextLocation) {
@@ -78,15 +98,15 @@ function calculateCharacterX(
 
 function validateInputs(xp: number, map: ThemeMap, targetXP: number): void {
   if (!Number.isFinite(xp) || xp < 0) {
-    throw new Error("Journey XP must be a non-negative number.");
+    throw new AppError("JOURNEY_INVALID_XP", "Journey XP must be a non-negative number.");
   }
 
   if (!Number.isFinite(targetXP) || targetXP <= 0) {
-    throw new Error("Journey target XP must be greater than zero.");
+    throw new AppError("JOURNEY_INVALID_TARGET", "Journey target XP must be greater than zero.");
   }
 
   if (map.locations.length === 0) {
-    throw new Error("Journey map must contain at least one location.");
+    throw new AppError("JOURNEY_INVALID_MAP", "Journey map must contain at least one location.");
   }
 }
 

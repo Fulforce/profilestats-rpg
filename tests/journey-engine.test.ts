@@ -13,7 +13,7 @@ const map: ThemeMap = {
 
 describe("calculateJourneyState", () => {
   it("starts at the first location", () => {
-    expect(calculateJourneyState(0, map)).toEqual({
+    expect(calculateJourneyState(0, map)).toMatchObject({
       xp: 0,
       targetXP: 1000,
       progressPercent: 0,
@@ -27,7 +27,7 @@ describe("calculateJourneyState", () => {
   });
 
   it("interpolates character position inside the active segment", () => {
-    expect(calculateJourneyState(700, map)).toEqual({
+    expect(calculateJourneyState(700, map)).toMatchObject({
       xp: 700,
       targetXP: 1000,
       progressPercent: 70,
@@ -41,7 +41,7 @@ describe("calculateJourneyState", () => {
   });
 
   it("caps journey progress at target XP while preserving actual XP", () => {
-    expect(calculateJourneyState(1250, map)).toEqual({
+    expect(calculateJourneyState(1250, map)).toMatchObject({
       xp: 1250,
       targetXP: 1000,
       progressPercent: 100,
@@ -58,10 +58,15 @@ describe("calculateJourneyState", () => {
     expect(calculateJourneyState(250, map, 500)).toMatchObject({
       targetXP: 500,
       progressPercent: 50,
-      currentLocationId: "START",
-      nextLocationId: "MIDDLE",
-      characterX: 25,
-      segmentProgressPercent: 62.5
+      currentLocationId: "MIDDLE",
+      nextLocationId: "END",
+      characterX: 50,
+      segmentProgressPercent: 16.7,
+      effectiveLocations: [
+        { id: "START", requiredXP: 0 },
+        { id: "MIDDLE", requiredXP: 200 },
+        { id: "END", requiredXP: 500 }
+      ]
     });
   });
 });
