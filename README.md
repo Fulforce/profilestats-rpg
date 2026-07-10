@@ -109,6 +109,8 @@ npm run check
 npm start
 ```
 
+`npm run check` covers typechecking, linting, and unit tests. Visual snapshot checks stay separate and are run with `npm run test:visual` in contributor CI.
+
 Run the complete update pipeline with:
 
 ```bash

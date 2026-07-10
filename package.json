@@ -14,7 +14,8 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "check": "npm run build && npm run lint && npm run test && npm run test:visual"
+    "check": "npm run build && npm run lint && npm run test",
+    "check:ci": "npm run check && npm run test:visual"
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.9.10",
