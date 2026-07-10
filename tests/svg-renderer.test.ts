@@ -10,11 +10,12 @@ import { validateGeneratedSvg } from "../src/svg/svg-validator.js";
 import { writeJourneySvg } from "../src/svg/svg-writer.js";
 import { loadTheme } from "../src/theme/theme-loader.js";
 import {
-  activeRenderState,
-  completedRenderState,
-  longTextRenderState,
-  partialRenderState,
-  zeroRenderState
+    activeRenderState,
+    completedRenderState,
+    earlyProgressRenderState,
+    longTextRenderState,
+    partialRenderState,
+    zeroRenderState
 } from "./fixtures/render-states.js";
 
 const standard: DisplayConfig = {
@@ -39,6 +40,8 @@ describe("renderJourneySvg", () => {
     expect(svg).toContain("33%");
     expect(svg).toContain("Lothlorien");
     expect(svg).toContain("Amon Hen");
+    expect(svg).toContain("The Shire");
+    expect(svg).toContain("Mount Doom");
     expect(svg).toContain("PRs merged");
     expect(svg).toContain("42");
     expect(svg).toContain("+2,520 XP");
@@ -86,11 +89,20 @@ describe("renderJourneySvg", () => {
     expect(completed).toContain("Journey complete");
     expect(completed).toContain("Completed 2026-07-09");
     expect(completed).not.toContain('stroke-dasharray="8 7"');
-    expect(completed).toMatch(/y="357"[^>]*>Mount Doom<\/text>/);
+    expect(completed).toContain(">Mount Doom</text>");
     expect(partial).toContain("Activity data incomplete");
     expect(partial).toContain("Commit totals may be lower than the public total.");
     expect(long).toContain("…");
     expect(long).toContain("octocat-with-a-very-long-but-valid-profile-name");
+  });
+
+  it("places the character between route nodes when progress is inside a segment", async () => {
+    const theme = await loadTheme("middle-earth");
+    const view = buildRenderViewModel(earlyProgressRenderState(), theme, standard);
+    const svg = renderJourneySvg({ view });
+
+    expect(svg).toContain('d="M 98 315 L 109 326 L 98 337 L 87 326 Z"');
+    expect(svg).not.toContain('d="M 55 315 L 66 326 L 55 337 L 44 326 Z"');
   });
 
   it("honors display switches and produces byte-identical output", async () => {

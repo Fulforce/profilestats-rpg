@@ -73,6 +73,7 @@
       "name": "Black Gate",
       "requiredXP": 33000,
       "x": 790,
+      "landmark": true,
       "terrain": "wasteland"
     },
     {

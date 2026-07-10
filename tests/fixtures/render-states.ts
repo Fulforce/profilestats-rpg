@@ -132,6 +132,27 @@ export function zeroRenderState(): StateDocument {
   });
 }
 
+export function earlyProgressRenderState(): StateDocument {
+  return document({
+    ...baseRecord,
+    progress: {
+      ...baseRecord.progress,
+      xp: 1296,
+      progressPercent: 2.6,
+      currentLocationId: "SHIRE",
+      nextLocationId: "BREE",
+      characterX: 81.4,
+      segmentProgressPercent: 51.8
+    },
+    xp: {
+      ...baseRecord.xp,
+      rawXP: 1296,
+      calculatedXP: 1296,
+      awardedXP: 1296
+    }
+  });
+}
+
 export function completedRenderState(): StateDocument {
   return document({
     ...baseRecord,
