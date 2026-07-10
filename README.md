@@ -1,159 +1,121 @@
 # GitHub Profile Stats RPG
 
-Turn GitHub contribution activity into a static RPG journey card for your profile README.
+Turn public GitHub activity into a static RPG journey card for a profile README.
 
-The engine reads your public GitHub activity, converts it into XP, moves your character through a theme route, unlocks titles and achievements, then writes:
-
-```text
-data/state.json
-data/daily-log.json
-data/events.json
-output/journey.svg
-```
-
-The default MVP theme is `middle-earth`, a journey from The Shire to Mount Doom.
-
-## Example Embed
-
-After the workflow has generated `output/journey.svg`, add this to your GitHub profile README:
-
-```md
-![GitHub RPG Journey](https://raw.githubusercontent.com/YOUR_USERNAME/github-profilestats-rpg/main/output/journey.svg)
-```
-
-Replace `YOUR_USERNAME` and the branch name if needed.
+The engine collects public activity, awards explainable XP, advances a character through a themed route, unlocks journey achievements, and writes versioned history plus a profile-ready SVG. The default bundled theme is `middle-earth`.
 
 ## Setup
 
 1. Fork this repository.
-2. Edit [config.yml](config.yml):
+2. Edit [.github/profile-stats-rpg.yml](.github/profile-stats-rpg.yml):
 
 ```yaml
-githubUser: "YOUR_GITHUB_USERNAME"
-theme: "middle-earth"
+schemaVersion: 1
+
+profile:
+  githubUser: "YOUR_GITHUB_USERNAME"
+
+theme:
+  id: "middle-earth"
 
 journey:
+  id: "road-to-mordor-2026"
   startDate: "2026-01-01"
   targetXP: 50000
   xpMultiplier: 1.0
 
 display:
+  layout: "standard"
   showStats: true
   showTitle: true
   showAchievements: true
+
+output:
+  svgPath: "output/journey.svg"
+  dataDirectory: "data"
 ```
 
-3. Commit and push your config change.
-4. Open the repository on GitHub.
-5. Go to **Actions**.
-6. Enable workflows if GitHub asks.
-7. Run **Update Journey** manually.
-8. Commit output will be generated automatically by the workflow.
+3. Commit and push the configuration.
+4. Open **Actions** on GitHub and enable workflows if prompted.
+5. Run **Update Journey** manually.
+6. Confirm that `output/journey.svg` and the versioned `data/` documents were committed.
+
+Embed the result in a profile README:
+
+```md
+![GitHub RPG Journey](https://raw.githubusercontent.com/YOUR_USERNAME/github-profilestats-rpg/main/output/journey.svg)
+```
 
 ## Scheduled Updates
 
-The default repository keeps scheduled updates disabled so forks do not accidentally run before they are configured.
-
-To enable daily updates in your fork, edit [.github/workflows/update-journey.yml](.github/workflows/update-journey.yml) and uncomment:
+Schedules are disabled in the host repository so a new fork cannot run against the example profile. After a successful manual run, uncomment the schedule in [.github/workflows/update-journey.yml](.github/workflows/update-journey.yml):
 
 ```yaml
 schedule:
   - cron: "17 5 * * *"
 ```
 
-Commit and push that change after setting `githubUser` in [config.yml](config.yml).
+Repository settings, branch protection, secrets, and Actions permissions do not copy from the host repository into a fork.
 
-## Fork Behavior
+## Journey Lifecycle
 
-Repository settings such as branch protection rules are not part of the files copied into a fork.
+`journey.id` permanently identifies one campaign. Its profile, theme, start date, target XP, and multiplier become locked after the first successful run.
 
-When you fork this project, you get the code, themes, specs, and GitHub Actions workflow files. Your fork has its own repository settings, branch rules, secrets, and Actions permissions.
+Progress never moves backwards when public GitHub totals decrease. Once XP reaches the target, the journey is frozen at 100%, added to `data/journeys.json`, and rendered without recollecting activity.
 
-The workflow itself is copied, but scheduled runs are disabled by default until you uncomment the `schedule` block.
+To begin another journey after completion, choose a new, unused ID and start date. The new journey recounts activity from that date and starts with no inherited XP or achievements. Completed journey history remains unchanged.
+
+Changing the ID while a journey is still active is rejected by default. To intentionally archive it as abandoned, configure the new journey, run **Update Journey** manually, and select `allow-abandon`. Locally, use:
+
+```bash
+ALLOW_ABANDON=true GITHUB_TOKEN=YOUR_TOKEN npm run update
+```
+
+Archived journey IDs cannot be reused.
 
 ## Configuration
 
-`githubUser` is the public GitHub account to analyze.
+- `profile.githubUser` selects the public GitHub account.
+- `theme.id` selects a bundled directory under `themes/`.
+- `journey.id` identifies this campaign permanently.
+- `journey.startDate` is the earliest activity date counted.
+- `journey.targetXP` controls journey length.
+- `journey.xpMultiplier` controls progression speed.
+- `display` selects rendering options.
+- `output` selects repository-relative generated paths.
 
-`theme` selects a folder inside `themes/`. The MVP currently ships with:
+Unknown configuration keys and paths outside the repository are rejected.
+
+## Generated Files
 
 ```text
-themes/middle-earth
+data/state.json       current active or completed journey
+data/journeys.json    completed and abandoned journey archive
+data/daily-log.json   one snapshot per journey and UTC date
+data/events.json      deduplicated journey lifecycle events
+output/journey.svg    profile-ready static image
 ```
 
-`journey.startDate` controls the earliest activity date counted.
-
-`journey.targetXP` controls how much XP completes the journey.
-
-`journey.xpMultiplier` changes progression speed without changing activity totals.
+The JSON and SVG files are written as one transaction. A failed collection, calculation, validation, or render leaves the previous artifact set intact.
 
 ## Local Development
 
-Install dependencies:
-
 ```bash
 npm ci
-```
-
-Run checks:
-
-```bash
 npm run check
-```
-
-Smoke-test config, theme, XP, journey, title, and achievement calculation without writing generated files:
-
-```bash
 npm start
 ```
 
-Run the full update pipeline:
+Run the complete update pipeline with:
 
 ```bash
 GITHUB_TOKEN=YOUR_TOKEN npm run update
 ```
 
-`npm run update` calls GitHub, writes `data/*.json`, and writes `output/journey.svg`.
-
-## How It Works
-
-```text
-GitHub activity
-↓
-XP
-↓
-Journey progress
-↓
-Title and achievements
-↓
-Storage files
-↓
-SVG profile card
-```
-
-The generated SVG is static and does not require JavaScript, external assets, custom fonts, or a browser runtime.
-
-## Generated Files
-
-`data/state.json` contains the latest computed state.
-
-`data/daily-log.json` stores one snapshot per calendar day.
-
-`data/events.json` stores milestone events such as unlocked titles, locations, and achievements.
-
-`output/journey.svg` is the profile-ready card.
+The generated SVG contains no JavaScript, remote assets, custom fonts, or browser runtime dependency.
 
 ## Themes
 
-Themes live in `themes/` and define:
+Bundled themes live under `themes/` and contain route, title, achievement, palette, and asset data. The engine remains theme-agnostic; new theme content should not be hardcoded into core modules.
 
-```text
-theme.json
-map.json
-titles.json
-achievements.json
-palette.json
-assets/
-```
-
-The engine is theme-agnostic. New routes, titles, achievements, colors, and assets should be added as theme data rather than hardcoded into the core engine.
+See the [specification index](specs/README.md), [architecture](docs/architecture.md), and [contribution guide](CONTRIBUTING.md) for more detail.

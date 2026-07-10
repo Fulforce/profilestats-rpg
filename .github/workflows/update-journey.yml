@@ -2,7 +2,13 @@ name: Update Journey
 
 on:
   workflow_dispatch:
-  # Forks can enable a schedule after setting config.yml.
+    inputs:
+      allow-abandon:
+        description: "Archive an active journey and start the newly configured journey"
+        required: false
+        default: false
+        type: boolean
+  # Forks can enable a schedule after setting .github/profile-stats-rpg.yml.
   # schedule:
   #   - cron: "17 5 * * *"
 
@@ -32,12 +38,13 @@ jobs:
         run: npm run update
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ALLOW_ABANDON: ${{ inputs['allow-abandon'] }}
 
       - name: Commit generated journey
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f data/state.json data/daily-log.json data/events.json output/journey.svg
+          git add -f data/state.json data/journeys.json data/daily-log.json data/events.json output/journey.svg
           if git diff --cached --quiet; then
             echo "No journey changes to commit."
           else

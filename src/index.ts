@@ -10,6 +10,7 @@ export * from "./github/github-api.js";
 export * from "./github/github-error.js";
 export * from "./github/types.js";
 export * from "./journey/journey-engine.js";
+export * from "./journey/journey-lifecycle.js";
 export * from "./storage/storage-engine.js";
 export * from "./storage/storage-error.js";
 export * from "./storage/types.js";

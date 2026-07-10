@@ -1,4 +1,3 @@
-import { join } from "node:path";
 import { writeFilesTransaction, type FileArtifact } from "../io/transactional-files.js";
 import type { StoredState } from "../storage/types.js";
 import type { Theme } from "../theme/types.js";
@@ -8,10 +7,10 @@ import type { SvgRenderOptions } from "./types.js";
 export async function writeJourneySvg(
   state: StoredState,
   theme: Theme,
-  outputDir = "output",
+  outputPath = "output/journey.svg",
   options?: SvgRenderOptions
 ): Promise<string> {
-  const artifact = buildJourneySvgArtifact(state, theme, outputDir, options);
+  const artifact = buildJourneySvgArtifact(state, theme, outputPath, options);
   await writeFilesTransaction([artifact]);
   return artifact.path;
 }
@@ -19,7 +18,7 @@ export async function writeJourneySvg(
 export function buildJourneySvgArtifact(
   state: StoredState,
   theme: Theme,
-  outputDir = "output",
+  outputPath = "output/journey.svg",
   options?: SvgRenderOptions
 ): FileArtifact {
   const svg = renderJourneySvg({ state, theme, options });
@@ -29,7 +28,7 @@ export function buildJourneySvgArtifact(
   }
 
   return {
-    path: join(outputDir, "journey.svg"),
+    path: outputPath,
     content: `${svg}\n`
   };
 }

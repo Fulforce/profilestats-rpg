@@ -1,12 +1,14 @@
-import { access, readFile } from "node:fs/promises";
-import { resolve, sep } from "node:path";
+import { readFile } from "node:fs/promises";
 import { parse } from "yaml";
 import { ConfigValidationError } from "./config-error.js";
 import { AppError } from "../errors/app-error.js";
 import { normalizeConfig, validateConfig } from "./config-validator.js";
 import type { AppConfig } from "./types.js";
 
-export async function loadConfig(path = "config.yml", today = new Date()): Promise<AppConfig> {
+export async function loadConfig(
+  path = ".github/profile-stats-rpg.yml",
+  today = new Date()
+): Promise<AppConfig> {
   let file: string;
   let parsed: unknown;
 
@@ -32,28 +34,5 @@ export async function loadConfig(path = "config.yml", today = new Date()): Promi
     throw new ConfigValidationError(issues);
   }
 
-  const config = normalizeConfig(parsed);
-  await assertThemeDirectoryExists(config.theme);
-
-  return config;
-}
-
-async function assertThemeDirectoryExists(theme: string): Promise<void> {
-  const themesRoot = resolve("themes");
-  const themePath = resolve(themesRoot, theme);
-
-  if (!themePath.startsWith(`${themesRoot}${sep}`)) {
-    throw new ConfigValidationError([{ path: "theme", message: "must stay inside themes/" }]);
-  }
-
-  try {
-    await access(themePath);
-  } catch {
-    throw new ConfigValidationError([
-      {
-        path: "theme",
-        message: `directory themes/${theme} does not exist`
-      }
-    ]);
-  }
+  return normalizeConfig(parsed);
 }

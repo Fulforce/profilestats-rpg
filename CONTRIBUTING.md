@@ -33,6 +33,7 @@ The following files are generated and ignored by default:
 
 ```text
 data/state.json
+data/journeys.json
 data/daily-log.json
 data/events.json
 output/journey.svg
