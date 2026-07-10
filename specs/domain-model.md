@@ -1,198 +1,171 @@
-\# domain-model.md
+# Domain Model
 
+This document is the canonical vocabulary for the engine. Other specifications may add validation rules but must not redefine these concepts.
 
-
-\# Activity
-
-
+## Version Types
 
 ```ts
-
-type Activity = {
-
-&#x20; commits: number;
-
-&#x20; prsOpened: number;
-
-&#x20; prsMerged: number;
-
-&#x20; issuesOpened: number;
-
-&#x20; issuesClosed: number;
-
-&#x20; reviewsSubmitted: number;
-
-&#x20; repositoriesCreated: number;
-
-&#x20; releasesPublished: number;
-
-&#x20; streaks: number;
-
-};
-
+type SchemaVersion = 1;
+type ISODate = string; // YYYY-MM-DD in UTC
+type ISODateTime = string; // ISO 8601 UTC timestamp
+type JourneyStatus = "ACTIVE" | "COMPLETED";
+type SvgLayout = "standard" | "compact";
 ```
 
+Persisted documents include `schemaVersion`. Calculations also record the engine, theme, and XP rule-set versions that produced them.
 
-
-\# XP Result
-
-
+## Activity
 
 ```ts
+type ActivityCounts = {
+  commits: number;
+  prsOpened: number;
+  prsMerged: number;
+  issuesOpened: number;
+  issuesClosed: number;
+  reviewsSubmitted: number;
+  repositoriesCreated: number;
+  releasesPublished: number;
+  streaks: number;
+};
+
+type CollectionWarning = {
+  code: string;
+  metric?: keyof ActivityCounts;
+  message: string;
+};
+
+type ActivityReport = {
+  counts: ActivityCounts;
+  githubUser: string;
+  window: { from: ISODate; to: ISODate };
+  collectedAt: ISODateTime;
+  source: "github-public-api";
+  complete: boolean;
+  warnings: CollectionWarning[];
+};
+```
+
+Counts are non-negative integers. `complete` is false whenever a known API cap, inaccessible source, or partial request affects the result.
+
+## XP
+
+```ts
+type XPSource = {
+  metric: keyof ActivityCounts;
+  count: number;
+  unitXP: number;
+  earnedXP: number;
+};
 
 type XPResult = {
-
-&#x20; rawXP: number;
-
-&#x20; multiplier: number;
-
-&#x20; finalXP: number;
-
+  ruleSetVersion: string;
+  sources: XPSource[];
+  rawXP: number;
+  multiplier: number;
+  calculatedXP: number;
+  awardedXP: number;
 };
-
 ```
 
+`calculatedXP` is the current calculation. `awardedXP` is monotonic within one journey and is the value used for progression.
 
-
-\# Journey State
-
-
+## Journey
 
 ```ts
-
-type JourneyState = {
-
-&#x20; progressPercent: number;
-
-&#x20; currentLocationId: string;
-
-&#x20; currentLocationName: string;
-
-&#x20; nextLocationId?: string;
-
-&#x20; nextLocationName?: string;
-
+type JourneyDefinition = {
+  id: string;
+  startDate: ISODate;
+  targetXP: number;
+  xpMultiplier: number;
+  themeId: string;
 };
 
+type JourneyProgress = {
+  journeyId: string;
+  status: JourneyStatus;
+  xp: number;
+  targetXP: number;
+  progressPercent: number;
+  currentLocationId: string;
+  nextLocationId?: string;
+  segmentProgressPercent: number;
+  startedAt: ISODate;
+  completedAt?: ISODateTime;
+};
 ```
 
+The persisted journey definition becomes immutable after its first successful run. A new `journey.id` creates a new campaign.
 
-
-\# Title
-
-
+## Titles And Achievements
 
 ```ts
-
-type Title = {
-
-&#x20; id: string;
-
-&#x20; name: string;
-
-&#x20; requiredXP: number;
-
+type TitleDefinition = {
+  id: string;
+  name: string;
+  requiredXP: number;
 };
 
+type AchievementCondition = {
+  metric: keyof ActivityCounts | "xp" | "location";
+  operator: "gte" | "reached";
+  value: number | string;
+};
+
+type AchievementDefinition = {
+  id: string;
+  name: string;
+  description: string;
+  category: "JOURNEY" | "XP" | "CONTRIBUTION" | "MILESTONE";
+  condition: AchievementCondition;
+};
+
+type AchievementUnlock = {
+  achievementId: string;
+  unlockedAt: ISODateTime;
+};
 ```
 
+Titles and achievements are scoped to one journey. Completed journey records retain their unlocks.
 
-
-\# Achievement
-
-
+## Events
 
 ```ts
-
-type Achievement = {
-
-&#x20; id: string;
-
-&#x20; name: string;
-
-&#x20; description: string;
-
-&#x20; unlockedAt?: string;
-
+type JourneyEvent = {
+  id: string;
+  journeyId: string;
+  occurredAt: ISODateTime;
+  type:
+    | "JOURNEY_STARTED"
+    | "LOCATION_UNLOCKED"
+    | "TITLE_UNLOCKED"
+    | "ACHIEVEMENT_UNLOCKED"
+    | "JOURNEY_COMPLETED";
+  value: string;
 };
-
 ```
 
+An event ID is deterministic from `journeyId`, `type`, and `value`. Re-running the engine must not duplicate it.
 
-
-\# Current State
-
-
+## Current And Completed Records
 
 ```ts
-
-type State = {
-
-&#x20; xp: number;
-
-&#x20; title: string;
-
-&#x20; location: string;
-
-&#x20; progressPercent: number;
-
-&#x20; achievements: string\[];
-
-&#x20; lastUpdated: string;
-
+type ActiveJourneyRecord = {
+  definition: JourneyDefinition;
+  progress: JourneyProgress;
+  activity: ActivityReport;
+  xp: XPResult;
+  titleId: string;
+  achievements: AchievementUnlock[];
+  lastUpdated: ISODateTime;
 };
 
-```
-
-
-
-\# Daily Snapshot
-
-
-
-```ts
-
-type DailySnapshot = {
-
-&#x20; date: string;
-
-&#x20; xp: number;
-
-&#x20; title: string;
-
-&#x20; location: string;
-
-&#x20; progressPercent: number;
-
-&#x20; achievements: string\[];
-
+type CompletedJourneyRecord = ActiveJourneyRecord & {
+  progress: JourneyProgress & {
+    status: "COMPLETED";
+    completedAt: ISODateTime;
+  };
 };
-
 ```
 
-
-
-\# Event
-
-
-
-```ts
-
-type Event = {
-
-&#x20; date: string;
-
-&#x20; type:
-
-&#x20;   | "LOCATION\_UNLOCKED"
-
-&#x20;   | "ACHIEVEMENT\_UNLOCKED"
-
-&#x20;   | "TITLE\_UNLOCKED";
-
-&#x20; value: string;
-
-};
-
-```
-
+Completed records are frozen and archived when completion is first persisted. Starting another journey creates a new active record; it does not carry XP or achievements forward.

@@ -1,1082 +1,139 @@
-\# config-spec.md
+# Configuration Specification
 
+## Purpose
 
+Configuration is the user-facing contract for selecting a profile, theme, journey, renderer, and output paths without changing application code.
 
-\# Purpose
+## Location And Discovery
 
-
-
-The Configuration System controls how the RPG Engine operates for an individual user.
-
-
-
-Configuration should allow users to customize:
-
-
-
-\- GitHub account
-
-\- Active theme
-
-\- Journey scope
-
-\- Journey pace
-
-\- Display options
-
-
-
-without modifying application code.
-
-
-
-Configuration acts as the primary interface between the user and the engine.
-
-
-
-\---
-
-
-
-\# Design Philosophy
-
-
-
-Configuration should be:
-
-
-
-✅ Human-readable
-
-
-
-✅ Easy to edit
-
-
-
-✅ Version controlled
-
-
-
-✅ Theme-independent
-
-
-
-✅ Backwards compatible
-
-
-
-✅ Fork-friendly
-
-
-
-Configuration should NOT require:
-
-
-
-❌ Code changes
-
-
-
-❌ Recompilation
-
-
-
-❌ Environment variable editing for normal usage
-
-
-
-\---
-
-
-
-\# Configuration File
-
-
-
-Location:
-
-
+The preferred file is:
 
 ```text
-
-config.yml
-
+.github/profile-stats-rpg.yml
 ```
 
+The CLI and Action accept a `config-path` override. Without an override, this is the only path discovered automatically.
 
-
-Repository root.
-
-
-
-\---
-
-
-
-\# Example Configuration
-
-
+## Version 1 Example
 
 ```yaml
+schemaVersion: 1
 
-githubUser: "octocat"
+profile:
+  githubUser: "octocat"
 
-
-
-theme: "middle-earth"
-
-
+theme:
+  id: "middle-earth"
 
 journey:
-
-&#x20; startDate: "2026-01-01"
-
-&#x20; targetXP: 50000
-
-&#x20; xpMultiplier: 1.0
-
-
+  id: "road-to-mordor-2026"
+  startDate: "2026-01-01"
+  targetXP: 50000
+  xpMultiplier: 1.0
 
 display:
+  layout: "standard"
+  showStats: true
+  showTitle: true
+  showAchievements: true
 
-&#x20; showStats: true
-
-&#x20; showTitle: true
-
-&#x20; showAchievements: true
-
+output:
+  svgPath: "output/journey.svg"
+  dataDirectory: "data"
 ```
 
-
-
-\---
-
-
-
-\# Configuration Schema
-
-
-
-\## githubUser
-
-
-
-Required.
-
-
-
-GitHub username whose activity will be analyzed.
-
-
-
-Example:
-
-
-
-```yaml
-
-githubUser: "octocat"
-
-```
-
-
-
-Validation:
-
-
-
-```text
-
-Required
-
-Must be a valid GitHub username
-
-Must not be empty
-
-```
-
-
-
-\---
-
-
-
-\# theme
-
-
-
-Defines the active theme.
-
-
-
-Example:
-
-
-
-```yaml
-
-theme: "middle-earth"
-
-```
-
-
-
-Validation:
-
-
-
-```text
-
-Required
-
-Theme directory must exist
-
-Theme must pass validation
-
-```
-
-
-
-Default:
-
-
-
-```yaml
-
-theme: "middle-earth"
-
-```
-
-
-
-\---
-
-
-
-\# Journey Configuration
-
-
-
-The journey section controls progression.
-
-
-
-\---
-
-
-
-\# journey.startDate
-
-
-
-Defines the earliest date from which activity is counted.
-
-
-
-Example:
-
-
-
-```yaml
-
-journey:
-
-&#x20; startDate: "2026-01-01"
-
-```
-
-
-
-Purpose:
-
-
-
-```text
-
-Start a brand new journey
-
-Use a 6 month lookback
-
-Use a 1 year lookback
-
-Use complete GitHub history
-
-```
-
-
-
-Validation:
-
-
-
-```text
-
-Required
-
-Must be a valid ISO date
-
-Cannot be in the future
-
-```
-
-
-
-Examples:
-
-
-
-```yaml
-
-startDate: "2026-07-09"
-
-```
-
-
-
-Fresh journey.
-
-
-
-```yaml
-
-startDate: "2025-07-09"
-
-```
-
-
-
-One-year lookback.
-
-
-
-```yaml
-
-startDate: "2020-01-01"
-
-```
-
-
-
-Multi-year lookback.
-
-
-
-\---
-
-
-
-\# journey.targetXP
-
-
-
-Defines how much XP is required to complete the active journey.
-
-
-
-Example:
-
-
-
-```yaml
-
-journey:
-
-&#x20; targetXP: 50000
-
-```
-
-
-
-Meaning:
-
-
-
-```text
-
-50000 XP
-
-=
-
-Journey Completion
-
-```
-
-
-
-Purpose:
-
-
-
-```text
-
-Control journey length
-
-```
-
-
-
-Validation:
-
-
-
-```text
-
-Required
-
-Integer
-
-Greater than zero
-
-```
-
-
-
-Recommended default:
-
-
-
-```yaml
-
-targetXP: 50000
-
-```
-
-
-
-\---
-
-
-
-\# journey.xpMultiplier
-
-
-
-Applies a multiplier to calculated XP.
-
-
-
-Example:
-
-
-
-```yaml
-
-journey:
-
-&#x20; xpMultiplier: 1.5
-
-```
-
-
-
-Calculation:
-
-
-
-```text
-
-Final XP
-
-=
-
-Raw XP × xpMultiplier
-
-```
-
-
-
-Purpose:
-
-
-
-```text
-
-Increase progression speed
-
-Decrease progression speed
-
-```
-
-
-
-Validation:
-
-
-
-```text
-
-Required
-
-Greater than zero
-
-```
-
-
-
-Examples:
-
-
-
-```yaml
-
-xpMultiplier: 0.5
-
-```
-
-
-
-Slower progression.
-
-
-
-```yaml
-
-xpMultiplier: 1.0
-
-```
-
-
-
-Normal progression.
-
-
-
-```yaml
-
-xpMultiplier: 2.0
-
-```
-
-
-
-Faster progression.
-
-
-
-\---
-
-
-
-\# Display Configuration
-
-
-
-Controls visual rendering.
-
-
-
-Display settings never affect progression.
-
-
-
-\---
-
-
-
-\# display.showStats
-
-
-
-Controls XP and progression statistics.
-
-
-
-Example:
-
-
-
-```yaml
-
-display:
-
-&#x20; showStats: true
-
-```
-
-
-
-Default:
-
-
-
-```yaml
-
-showStats: true
-
-```
-
-
-
-\---
-
-
-
-\# display.showTitle
-
-
-
-Controls title visibility.
-
-
-
-Example:
-
-
-
-```yaml
-
-display:
-
-&#x20; showTitle: true
-
-```
-
-
-
-Default:
-
-
-
-```yaml
-
-showTitle: true
-
-```
-
-
-
-\---
-
-
-
-\# display.showAchievements
-
-
-
-Controls achievement count visibility.
-
-
-
-Example:
-
-
-
-```yaml
-
-display:
-
-&#x20; showAchievements: true
-
-```
-
-
-
-Default:
-
-
-
-```yaml
-
-showAchievements: true
-
-```
-
-
-
-\---
-
-
-
-\# Full Default Configuration
-
-
-
-The engine should assume:
-
-
-
-```yaml
-
-githubUser: ""
-
-
-
-theme: "middle-earth"
-
-
-
-journey:
-
-&#x20; startDate: "2026-01-01"
-
-&#x20; targetXP: 50000
-
-&#x20; xpMultiplier: 1.0
-
-
-
-display:
-
-&#x20; showStats: true
-
-&#x20; showTitle: true
-
-&#x20; showAchievements: true
-
-```
-
-
-
-Required values must still be validated.
-
-
-
-\---
-
-
-
-\# Validation Rules
-
-
-
-The configuration loader must validate:
-
-
-
-```text
-
-githubUser exists
-
-
-
-theme exists
-
-
-
-journey.startDate exists
-
-
-
-journey.targetXP > 0
-
-
-
-journey.xpMultiplier > 0
-
-```
-
-
-
-\---
-
-
-
-\# Validation Failure Example
-
-
-
-Example invalid configuration:
-
-
-
-```yaml
-
-githubUser: ""
-
-
-
-journey:
-
-&#x20; targetXP: -100
-
-```
-
-
-
-Expected result:
-
-
-
-```text
-
-Configuration validation failed.
-
-
-
-githubUser is required.
-
-
-
-targetXP must be greater than zero.
-
-```
-
-
-
-Execution should stop.
-
-
-
-\---
-
-
-
-\# Configuration Contract
-
-
-
-The configuration loader should return:
-
-
+## Contract
 
 ```ts
-
-type Config = {
-
-&#x20; githubUser: string;
-
-
-
-&#x20; theme: string;
-
-
-
-&#x20; journey: {
-
-&#x20;   startDate: string;
-
-&#x20;   targetXP: number;
-
-&#x20;   xpMultiplier: number;
-
-&#x20; };
-
-
-
-&#x20; display: {
-
-&#x20;   showStats: boolean;
-
-&#x20;   showTitle: boolean;
-
-&#x20;   showAchievements: boolean;
-
-&#x20; };
-
+type AppConfig = {
+  schemaVersion: 1;
+  profile: {
+    githubUser: string;
+  };
+  theme: {
+    id: string;
+  };
+  journey: {
+    id: string;
+    startDate: string;
+    targetXP: number;
+    xpMultiplier: number;
+  };
+  display?: {
+    layout?: "standard" | "compact";
+    showStats?: boolean;
+    showTitle?: boolean;
+    showAchievements?: boolean;
+  };
+  output?: {
+    svgPath?: string;
+    dataDirectory?: string;
+  };
 };
-
 ```
 
-
-
-\---
-
-
-
-\# State Metadata Requirements
-
-
-
-Configuration values should be stored in:
-
-
-
-```text
-
-data/state.json
-
-```
-
-
-
-Metadata section.
-
-
-
-Example:
-
-
-
-```json
-
-{
-
-&#x20; "metadata": {
-
-&#x20;   "theme": "middle-earth",
-
-&#x20;   "githubUser": "octocat",
-
-&#x20;   "journeyStartDate": "2026-01-01",
-
-&#x20;   "targetXP": 50000,
-
-&#x20;   "xpMultiplier": 1.0
-
-&#x20; }
-
-}
-
-```
-
-
-
-This improves:
-
-
-
-```text
-
-Debugging
-
-Reporting
-
-Replay capabilities
-
-Tooling
-
-```
-
-
-
-\---
-
-
-
-\# Future Compatibility
-
-
-
-The schema should allow future additions.
-
-
-
-Examples:
-
-
+Defaults are applied before the validated configuration reaches the engine:
 
 ```yaml
-
-theme: "space-odyssey"
-
-
-
-journey:
-
-&#x20; startDate: "2026-01-01"
-
-&#x20; targetXP: 75000
-
-&#x20; xpMultiplier: 1.25
-
-
-
 display:
-
-&#x20; showStats: true
-
-
-
-renderer:
-
-&#x20; width: 1400
-
-&#x20; height: 400
-
+  layout: "standard"
+  showStats: true
+  showTitle: true
+  showAchievements: true
+output:
+  svgPath: "output/journey.svg"
+  dataDirectory: "data"
 ```
 
+## Validation
 
+- `schemaVersion` must be the integer `1`.
+- `profile.githubUser` must match GitHub username syntax and be at most 39 characters.
+- `theme.id` and `journey.id` must match `^[a-z0-9][a-z0-9-]{0,63}$`.
+- `journey.startDate` must be a real UTC calendar date and must not be in the future.
+- `journey.targetXP` must be an integer from 1 through 1,000,000,000.
+- `journey.xpMultiplier` must be a finite number greater than 0 and at most 100.
+- booleans must not be coerced from strings.
+- output paths must be relative, remain inside the repository, and may not traverse with `..`.
+- unknown keys are validation errors, preventing misspellings from being ignored.
+- all validation issues are returned together with their YAML paths.
 
-Future fields should be additive and backwards compatible.
+Secrets, tokens, and private contribution settings are forbidden in configuration.
 
+## Journey Immutability
 
+After a successful run persists a journey, these fields are locked for that `journey.id`:
 
-\---
+- `profile.githubUser`;
+- `theme.id`;
+- `journey.startDate`;
+- `journey.targetXP`;
+- `journey.xpMultiplier`.
 
+Changing a locked value while retaining the same ID fails with instructions to restore the value or choose a new journey ID. Display and output settings remain editable.
 
+When the current journey is complete, leaving the same journey ID continues to render the frozen result. A different, previously unused journey ID archives the completed journey and starts a fresh calculation from the new start date.
 
-\# Non-Goals
+An incomplete journey cannot be replaced implicitly. Starting a new journey while one is active requires an explicit CLI or Action option, `allow-abandon: true`; abandonment behavior is defined in the journey specification.
 
+## Action Inputs
 
-
-Configuration is not responsible for:
-
-
+Action inputs control execution, not gameplay:
 
 ```text
-
-XP Calculation
-
-Achievement Logic
-
-Journey Progression
-
-Storage
-
-GitHub API Collection
-
-SVG Rendering
-
+config-path       optional, default .github/profile-stats-rpg.yml
+github-token      required for GitHub collection
+commit-changes    optional boolean, default false
+allow-abandon     optional boolean, default false
 ```
 
+Journey settings must not be duplicated as Action inputs. This preserves one version-controlled source of truth.
 
+## Acceptance Criteria
 
-Configuration only provides input values to those systems.
-
-
-
-\---
-
-
-
-\# MVP Acceptance Criteria
-
-
-
-The Configuration System is complete when:
-
-
-
-✅ Configuration is loaded from config.yml
-
-
-
-✅ GitHub username can be configured
-
-
-
-✅ Theme can be selected
-
-
-
-✅ Journey start date can be configured
-
-
-
-✅ Journey target XP can be configured
-
-
-
-✅ XP multiplier can be configured
-
-
-
-✅ Display options can be configured
-
-
-
-✅ Validation errors are descriptive
-
-
-
-✅ Invalid configuration blocks execution
-
-
-
-✅ Configuration is reusable across future themes
-
-
-
-✅ No code changes are required for normal user customization
-
+- fork and Action installations load the same schema;
+- defaults are explicit and tested;
+- invalid and unknown fields produce actionable errors;
+- persisted campaigns cannot be mutated accidentally;
+- paths cannot escape the working repository;
+- configuration contains no credentials.

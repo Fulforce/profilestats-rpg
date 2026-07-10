@@ -1,1468 +1,170 @@
-\# github-action-spec.md
+# GitHub Action And Automation Specification
 
+## Purpose
 
+Automation runs the engine in the user's repository, writes generated artifacts, and optionally commits them. It must require no service operated or paid for by the project maintainer.
 
-\# Purpose
+## Supported Installation Modes
 
+### Fork mode
 
+The repository includes `.github/workflows/update-journey.yml`. A fork owner configures their profile, enables Actions, manually validates the first run, and then enables the commented schedule.
 
-The GitHub Action is responsible for keeping the RPG journey up to date automatically.
+### Reusable Action mode
 
-
-
-The action acts as the orchestration layer for the entire engine.
-
-
-
-Its responsibilities are:
-
-
-
-\- Collect GitHub activity
-
-\- Calculate XP
-
-\- Calculate journey progression
-
-\- Unlock achievements
-
-\- Unlock titles
-
-\- Persist journey data
-
-\- Generate SVG output
-
-\- Commit updated files back to the repository
-
-
-
-The action should require minimal user intervention after setup.
-
-
-
-\---
-
-
-
-\# Philosophy
-
-
-
-The system should feel alive.
-
-
-
-The user should:
-
-
+A user with an existing profile repository adds:
 
 ```text
-
-Fork Repository
-
-↓
-
-Configure Username
-
-↓
-
-Enable GitHub Actions
-
-↓
-
-Forget About It
-
+.github/profile-stats-rpg.yml
+.github/workflows/update-profile-rpg.yml
 ```
 
-
-
-Progression should happen automatically.
-
-
-
-The SVG should update itself over time.
-
-
-
-\---
-
-
-
-\# Workflow Location
-
-
-
-```text
-
-.github/workflows/update.yml
-
-```
-
-
-
-\---
-
-
-
-\# Workflow Name
-
-
-
-Recommended:
-
-
+Example consumer workflow:
 
 ```yaml
-
-name: Update Journey
-
-```
-
-
-
-\---
-
-
-
-\# Trigger Strategy
-
-
-
-The workflow should support:
-
-
-
-\## Scheduled Updates
-
-
-
-Primary trigger.
-
-
-
-```yaml
-
-schedule:
-
-&#x20; - cron: "0 2 \* \* \*"
-
-```
-
-
-
-Recommended:
-
-
-
-```text
-
-Daily\*```
-
-
-
-Purpose:
-
-
-
-```text
-
-Update jour\*ey progression
-
-Refresh\*SVG
-
-Record daily snapshot\*```
-
-
-
-\---
-
-
-
-\# Manual Execution
-
-
-
-Supp\*rt:
-
-
-
-```yaml
-
-workflow\*dispatch:
-
-```
-
-
-
-Purpose:
-
-
-
-```text
-
-F\*rce update\*Debug workflow\*Test changes
-
-```
-
-
-
-\---
-
-
-
-\# Push Trig\*er
-
-
-
-Optional.
-
-
-
-For MVP:
-
-
-
-```yaml
-
-p\*sh:
-
-&#x20; branches:
-
-&#x20;   - main
-
-```
-
-
-
-Us\*ful during development.
-
-
-
-May be re\*oved later.
-
-
-
-\---
-
-
-
-\# Workflow Lifec\*cle
-
-
-
-Execution flow:
-
-
-
-```text
-
-Load\*Configuration
-
-↓
-
-Validate Theme
-
-↓
-
-C\*llect GitHub Activity
-
-↓
-
-Calculate \*P
-
-↓
-
-Calculate Journey Progress
-
-↓
-
-C\*lculate Title
-
-↓
-
-Calculate Achievem\*nts
-
-↓
-
-Generate Storage Updates
-
-↓
-
-G\*nerate SVG
-
-↓
-
-Commit Changes
-
-↓
-
-Push\*Changes
-
-```
-
-
-
-\---
-
-
-
-\# Stage 1 — Load\*Configuration
-
-
-
-Read:
-
-
-
-```text
-
-conf\*g.yml
-
-```
-
-
-
-Expected values:
-
-
-
-```ya\*l
-
-githubUser: "octocat"
-
-
-
-theme: "m\*ddle-earth"
-
-
-
-journey:
-
-&#x20; startDate:\*"2026-01-01"
-
-&#x20; targetXP: 50000
-
-&#x20; x\*Multiplier: 1.0
-
-```
-
-
-
-\---
-
-
-
-\# Valida\*ion Rules
-
-
-
-Verify:
-
-
-
-✅ githubUser e\*ists
-
-
-
-✅ theme exists
-
-
-
-✅ journey.st\*rtDate exists
-
-
-
-✅ targetXP > 0
-
-
-
-✅ x\*Multiplier > 0
-
-
-
-If validation fail\*:
-
-
-
-```text
-
-Fail workflow
-
-Emit usef\*l error
-
-```
-
-
-
-\---
-
-
-
-\# Stage 2 — Load\*Theme
-
-
-
-Load:
-
-
-
-```text
-
-themes/<them\*>/
-
-```
-
-
-
-Validate:
-
-
-
-```text
-
-theme.j\*on
-
-map.json
-
-titles.json
-
-achievemen\*s.json
-
-palette.json
-
-```
-
-
-
-\---
-
-
-
-\# Th\*me Validation
-
-
-
-Verify:
-
-
-
-✅ Theme di\*ectory exists
-
-
-
-✅ Required files ex\*st
-
-
-
-✅ Map contains locations
-
-
-
-✅ Ti\*les contain thresholds
-
-
-
-✅ Achievem\*nts contain IDs
-
-
-
-If validation fai\*s:
-
-
-
-```text
-
-Abort execution
-
-```
-
-
-
-\-\*-
-
-
-
-\# Stage 3 — Collect GitHub Acti\*ity
-
-
-
-Input:
-
-
-
-```text
-
-githubUser
-
-jo\*rney.startDate
-
-```
-
-
-
-Collect:
-
-
-
-```t\*xt
-
-Commits
-
-PRs Opened
-
-PRs Merged
-
-I\*sues Opened
-
-Issues Closed
-
-Reviews \*ubmitted
-
-Repositories Created
-
-Rele\*ses Published
-
-Contribution Streaks\*```
-
-
-
-Output:
-
-
-
-```json
-
-{
-
-&#x20; "commits\*: 1234,
-
-&#x20; "prsMerged": 42
-
-}
-
-```
-
-
-
-\-\*-
-
-
-
-\# Activity Collection Window
-
-
-
-O\*ly include activity occurring on o\* after:
-
-
-
-```yaml
-
-journey.startDate\*```
-
-
-
-Example:
-
-
-
-```yaml
-
-startDate: \*2026-01-01"
-
-```
-
-
-
-Any earlier activ\*ty must be ignored.
-
-
-
-\---
-
-
-
-\# Stage \* — Calculate XP
-
-
-
-Input:
-
-
-
-```text
-
-A\*tivity
-
-XP Rules
-
-xpMultiplier
-
-```
-
-
-
-\*utput:
-
-
-
-```json
-
-{
-
-&#x20; "rawXP": 10450\*
-
-&#x20; "multiplier": 1.25,
-
-&#x20; "finalXP"\* 13062
-
-}
-
-```
-
-
-
-\---
-
-
-
-\# Stage 5 — Cal\*ulate Journey Progress
-
-
-
-Input:
-
-
-
-``\*text
-
-XP
-
-targetXP
-
-map.json
-
-```
-
-
-
-Out\*ut:
-
-
-
-```json
-
-{
-
-&#x20; "progressPercent"\* 52.4,
-
-&#x20; "currentLocation": "Lothl\*rien",
-
-&#x20; "nextLocation": "Amon Hen\*
-
-}
-
-```
-
-
-
-\---
-
-
-
-\# Stage 6 — Evaluate \*itles
-
-
-
-Input:
-
-
-
-```text
-
-XP
-
-titles.j\*on
-
-```
-
-
-
-Output:
-
-
-
-```json
-
-{
-
-&#x20; "titl\*": "Adventurer"
-
-}
-
-```
-
-
-
-\---
-
-
-
-\# Stag\* 7 — Evaluate Achievements
-
-
-
-Input:\*
-
-```text
-
-Activity
-
-Journey State
-
-Cu\*rent XP
-
-achievements.json
-
-```
-
-
-
-Out\*ut:
-
-
-
-```json
-
-{
-
-&#x20; "achievements": \[\*    "LEFT\_SHIRE",
-
-&#x20;   "FIRST\_PR\_ME\*GED"
-
-&#x20; ]
-
-}
-
-```
-
-
-
-\---
-
-
-
-\# Stage 8 — U\*date State Files
-
-
-
-Generate:
-
-
-
-```te\*t
-
-data/state.json
-
-```
-
-
-
-Update:
-
-
-
-``\*text
-
-Current Snapshot
-
-```
-
-
-
-\---
-
-
-
-\# \*pdate Daily Log
-
-
-
-Update:
-
-
-
-```text
-
-\*ata/daily-log.json
-
-```
-
-
-
-Rules:
-
-
-
-``\*text
-
-One snapshot per calendar day\*```
-
-
-
-If today's record exists:
-
-
-
-``\*text
-
-Replace today's snapshot
-
-```
-
-\*Otherwise:
-
-
-
-```text
-
-Append new sna\*shot
-
-```
-
-
-
-\---
-
-
-
-\# Update Event Log
-
-\*Update:
-
-
-
-```text
-
-data/events.json
-
-\*``
-
-
-
-Append:
-
-
-
-```text
-
-Newly unlocke\* achievements
-
-Newly unlocked title\*
-
-Newly reached locations
-
-```
-
-
-
-Neve\* create duplicates.
-
-
-
-\---
-
-
-
-\# Stage \* — Generate SVG
-
-
-
-Input:
-
-
-
-```text
-
-s\*ate.json
-
-theme assets
-
-map.json
-
-```\*
-
-Output:
-
-
-
-```text
-
-output/journey.s\*g
-
-```
-
-
-
-Must include:
-
-
-
-✅ XP
-
-
-
-✅ Prog\*ess
-
-
-
-✅ Current Location
-
-
-
-✅ Next Lo\*ation
-
-
-
-✅ Current Title
-
-
-
-✅ Achievem\*nt Count
-
-
-
-✅ Route
-
-
-
-✅ Character Pos\*tion
-
-
-
-\---
-
-
-
-\# SVG Validation
-
-
-
-Verif\*:
-
-
-
-```text
-
-SVG generated
-
-SVG not e\*pty
-
-```
-
-
-
-If generation fails:
-
-
-
-```\*ext
-
-Fail workflow
-
-```
-
-
-
-Do not comm\*t invalid SVGs.
-
-
-
-\---
-
-
-
-\# Stage 10 —\*Commit Changes
-
-
-
-Expected changed f\*les:
-
-
-
-```text
-
-data/state.json
-
-data\*daily-log.json
-
-data/events.json
-
-ou\*put/journey.svg
-
-```
-
-
-
-\---
-
-
-
-\# Commit\*Message
-
-
-
-Recommended:
-
-
-
-```text
-
-cho\*e: update journey progression
-
-```
-
-\*Alternative:
-
-
-
-```text
-
-chore: updat\* middle-earth journey
-
-```
-
-
-
-\---
-
-
-
-\# Git Commit Rules
-
-
-
-Only commit if files changed.
-
-
-
-Avoid empty commits.
-
-\*Example:
-
-
-
-```bash
-
-No changes → No \*ommit
-
-```
-
-
-
-\---
-
-
-
-\# Push Changes
-
-
-
-Pu\*h updates back to:
-
-
-
-```text
-
-main
-
-`\*`
-
-
-
-branch.
-
-
-
-\---
-
-
-
-\# Permissions
-
-
-
-Wo\*kflow requires:
-
-
-
-```yaml
+name: Update Profile RPG
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 5 * * *"
 
 permissions:
+  contents: write
 
-&#x20; contents: write
-
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: Fulforce/profilestats-rpg@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          commit-changes: true
 ```
 
+The Action reads journey settings from the checked-out consumer repository. The referenced release contains the executable engine and bundled themes. GitHub supplies the runner; the maintainer hosts no runtime infrastructure.
 
+The final owner/repository spelling is release metadata and may differ from this example.
 
-Purpose:
+## Action Packaging
 
+The repository exposes `action.yml` as a JavaScript Action with a checked-in, reproducible `dist/` bundle. Consumers do not run `npm install` for this project and do not depend on the repository's development files.
 
+Release tags follow semantic versioning:
 
-```text
+- immutable tags such as `v1.2.3` identify exact releases;
+- a maintained major tag such as `v1` moves only to compatible releases;
+- security guidance may recommend pinning a full commit SHA;
+- breaking input, output, schema, or runtime changes require a new major Action version.
 
-Commit generated files
+## Inputs And Outputs
 
-```
+Inputs:
 
+| Input            | Required | Default                         | Meaning                                                    |
+| ---------------- | -------- | ------------------------------- | ---------------------------------------------------------- |
+| `github-token`   | yes      | none                            | Token used for public GitHub collection and optional push. |
+| `config-path`    | no       | `.github/profile-stats-rpg.yml` | Configuration in the consumer checkout.                    |
+| `commit-changes` | no       | `false`                         | Commit and push generated files when changed.              |
+| `allow-abandon`  | no       | `false`                         | Explicitly allow replacing an active journey.              |
 
+Outputs:
 
-\---
+| Output             | Meaning                             |
+| ------------------ | ----------------------------------- |
+| `changed`          | `true` when generated files differ. |
+| `svg-path`         | Validated generated SVG path.       |
+| `journey-status`   | `ACTIVE` or `COMPLETED`.            |
+| `progress-percent` | Numeric current progress.           |
 
+Secrets are masked and never echoed. Gameplay configuration is not duplicated as inputs.
 
+## Workflow Lifecycle
 
-\# Failure Handling
+1. verify checkout and repository boundary;
+2. load and validate configuration;
+3. load and validate the selected bundled theme;
+4. load and validate persisted data;
+5. return the frozen record immediately when the same journey is complete;
+6. collect public GitHub activity for an active or new journey;
+7. calculate XP, route, title, achievements, and events;
+8. construct all JSON and SVG outputs;
+9. validate output safety and consistency;
+10. atomically replace generated files;
+11. expose Action outputs;
+12. commit and push only when requested and files changed.
 
+No generated file is changed before the complete candidate update validates.
 
+## Triggers
 
-Workflow failures should be visible.
+The project-supplied fork workflow supports `workflow_dispatch`. Its schedule remains commented out in the host repository so newly created forks do not run against the example configuration.
 
+Users enable scheduling only after configuration and a successful manual run. Scheduled workflow behavior belongs to the consumer repository and does not affect the maintainer's account.
 
+Push triggers are not enabled by default because generated commits can cause loops. If a consumer adds one, generated commits must be excluded or tagged to prevent recursion.
 
-Failures should include:
+## Commit Behavior
 
+When `commit-changes` is true:
 
+- configure the documented GitHub Actions bot identity;
+- stage only configured generated JSON and SVG paths;
+- refuse paths outside the repository;
+- commit only when staged content differs;
+- use `chore: update profile RPG journey`;
+- push to the checked-out branch without force;
+- surface branch-protection rejection with guidance;
+- never stage configuration, source, logs, temporary files, or unrelated changes.
 
-```text
+The Action must not attempt to bypass branch protection. Consumers with protected profile branches may set `commit-changes: false` and implement a pull-request workflow.
 
-Missing config
+## Permissions And Security
 
-Missing theme
+The recommended consumer workflow declares `contents: write` only when committing. Generation-only use requires `contents: read`.
 
-Invalid JSON
+The Action:
 
-GitHub API errors
+- uses no `pull_request_target` workflow;
+- does not execute theme or configuration content;
+- validates and confines all paths;
+- does not run arbitrary shell values from user data;
+- pins build dependencies through the lockfile;
+- receives automated dependency and code scanning;
+- publishes provenance and release checksums where practical;
+- never persists or prints tokens;
+- treats pull requests from forks as untrusted and without write credentials.
 
-SVG generation errors
+## Concurrency And Reliability
 
-```
+Consumer workflows should define one concurrency group per repository with `cancel-in-progress: false`. Concurrent runs must not race generated state.
 
+The normal target runtime is below 60 seconds and the hard target is below 2 minutes for typical profiles. Network requests have timeouts. Transient retries are bounded. A failed run leaves previous output intact and exits non-zero with a safe, actionable message.
 
+## Idempotency
 
-Emit descriptive messages.
-
-
-
-Avoid generic:
-
-
-
-```text
-
-Something went wrong
-
-```
-
-
-
-errors.
-
-
-
-\---
-
-
-
-\# Rate Limiting
-
-
-
-The collector should:
-
-
-
-```text
-
-Minimize API calls
-
-```
-
-
-
-Recommended:
-
-
-
-```text
-
-Query only required activity
-
-```
-
-
-
-Avoid:
-
-
-
-```text
-
-Fetching raw repository history unnecessarily
-
-```
-
-
-
-\---
-
-
-
-\# Idempotency
-
-
-
-Multiple executions on the same day should produce:
-
-
-
-```text
-
-Same state
-
-Same SVG
-
-One daily snapshot
-
-No duplicate events
-
-```
-
-
-
-The workflow must be safe to rerun.
-
-
-
-\---
-
-
-
-\# Recovery Behaviour
-
-
-
-If:
-
-
-
-```text
-
-state.json
-
-```
-
-
-
-is deleted:
-
-
-
-The engine should rebuild it.
-
-
-
-If:
-
-
-
-```text
-
-events.json
-
-```
-
-
-
-is deleted:
-
-
-
-The engine should regenerate future events but historical loss is accepted.
-
-
-
-If:
-
-
-
-```text
-
-daily-log.json
-
-```
-
-
-
-is deleted:
-
-
-
-Future snapshots continue normally.
-
-
-
-Historical data is not reconstructed in MVP.
-
-
-
-\---
-
-
-
-\# Security Requirements
-
-
-
-The workflow must never:
-
-
-
-❌ Commit secrets
-
-
-
-❌ Commit GitHub tokens
-
-
-
-❌ Commit API responses
-
-
-
-❌ Persist credentials
-
-
-
-Only generated progression data may be stored.
-
-
-
-\---
-
-
-
-\# Performance Goals
-
-
-
-Target runtime:
-
-
-
-```text
-
-< 2 minutes
-
-```
-
-
-
-Preferred:
-
-
-
-```text
-
-< 30 seconds
-
-```
-
-
-
-for typical users.
-
-
-
-\---
-
-
-
-\# MVP Acceptance Criteria
-
-
-
-The GitHub Action is complete when:
-
-
-
-✅ Runs automatically each day
-
-
-
-✅ Supports manual execution
-
-
-
-✅ Loads configuration
-
-
-
-✅ Loads selected theme
-
-
-
-✅ Collects GitHub activity
-
-
-
-✅ Calculates XP
-
-
-
-✅ Calculates location and progress
-
-
-
-✅ Evaluates achievements
-
-
-
-✅ Evaluates titles
-
-
-
-✅ Updates state.json
-
-
-
-✅ Updates daily-log.json
-
-
-
-✅ Updates events.json
-
-
-
-✅ Generates journey.svg
-
-
-
-✅ Commits changed files
-
-
-
-✅ Pushes updates successfully
-
-
-
-✅ Avoids duplicate snapshots and events
-
-
-
-✅ Can be installed via repository fork
-
-
-
-✅ Requires no ongoing user maintenance
-
+Two runs against unchanged activity on the same UTC day produce no second snapshot, event, or commit. A completed journey with unchanged display settings skips collection and produces no commit.
+
+## Release Verification
+
+CI for a release must:
+
+- build the Action bundle from a clean checkout;
+- verify the checked-in bundle matches the build;
+- run unit, integration, theme, and SVG tests;
+- smoke-test both fork and consumer fixtures;
+- verify Action metadata and outputs;
+- scan the bundle and dependencies;
+- test the supported Node runtime declared by the Action.
+
+## Acceptance Criteria
+
+- fork and reusable Action modes are behaviorally equivalent;
+- consumers configure journeys through their own YAML file;
+- no maintainer-hosted runtime is required;
+- schedules are opt-in for forks;
+- commits contain only generated artifacts;
+- reruns are idempotent and concurrency-safe;
+- failures preserve valid existing output;
+- releases are versioned and reproducible.

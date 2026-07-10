@@ -1,1002 +1,139 @@
-\# contributor-spec.md
+# Contributor Specification
 
+## Purpose
 
+This document defines the contract for contributing to a small, welcoming, maintainable open-source project. The project accepts engine, theme, renderer, documentation, testing, and accessibility improvements.
 
-\# Purpose
+## Architectural Boundary
 
+The engine owns:
 
+- configuration and schema validation;
+- public GitHub collection;
+- XP and journey calculations;
+- title and achievement evaluation mechanics;
+- storage and event semantics;
+- SVG layout mechanics;
+- validation and Action packaging.
 
-This document defines how contributors should extend and improve the GitHub RPG Engine.
+Themes own:
 
+- setting, route, and location content;
+- titles and achievements;
+- palette and licensed visual assets;
+- theme metadata and attribution.
 
+Theme-specific names or behavior must not be hardcoded in engine modules. A new valid bundled theme should require no engine change.
 
-The project is designed as a platform rather than a single theme implementation.
-
-
-
-Contributors should be able to:
-
-
-
-✅ Add new themes
-
-
-
-✅ Add assets
-
-
-
-✅ Improve SVG rendering
-
-
-
-✅ Add achievements
-
-
-
-✅ Add titles
-
-
-
-✅ Improve documentation
-
-
-
-✅ Fix bugs
-
-
-
-without requiring changes to core engine architecture.
-
-
-
-\---
-
-
-
-\# Core Philosophy
-
-
-
-The engine and themes are separate concerns.
-
-
-
-Contributors should prefer:
-
-
+## Repository Areas
 
 ```text
-
-Theme Extensions
-
+src/                 engine source
+tests/               automated tests and fixtures
+themes/              bundled themes
+specs/               normative target behavior
+docs/                explanatory guides and architecture
+.github/              CI, automation, and contribution templates
+action.yml            public Action contract
+dist/                 generated release bundle
 ```
 
+Generated user journey data is not accepted into the host repository.
 
+## Contribution Workflow
 
-over:
+1. create or assign an issue for material behavior changes;
+2. branch from the current default branch;
+3. keep the change focused;
+4. update implementation, tests, and relevant specifications together;
+5. run `npm run check` and any documented visual checks;
+6. submit a pull request using the template;
+7. resolve review conversations and maintain branch compatibility.
 
+Small documentation and typo fixes do not require a prior issue.
 
+## Specification Policy
 
-```text
+Specifications are normative. If implementation and specification disagree, the mismatch must be resolved explicitly; neither silently overrides the other.
 
-Engine Modifications
+Behavioral pull requests identify:
 
-```
+- the affected contract;
+- compatibility impact;
+- compatibility impact when persisted data changes;
+- user-visible output changes;
+- tests demonstrating acceptance criteria.
 
+Breaking changes target the next major release and require a clear failure path and upgrade documentation.
 
+## Theme Contributions
 
-whenever possible.
+A theme pull request includes:
 
+- the complete required theme directory;
+- valid schema-versioned data;
+- route, title, and achievement tests;
+- standard and compact render fixtures;
+- `LICENSE.md` with asset and text provenance;
+- no executable content or remote resources;
+- documentation showing how to select the theme.
 
+Theme authors must have the right to contribute all material. Fan themes must avoid claims of endorsement and may be declined or removed when licensing or trademark risk is unclear.
 
-Example:
+The project does not promise acceptance, permanent inclusion, or indefinite compatibility for every proposed theme.
 
+## Code Quality
 
+- TypeScript strict mode remains enabled;
+- pure domain functions are preferred;
+- I/O stays behind explicit boundaries;
+- public contracts use named types and stable errors;
+- dependencies require a concrete maintenance or correctness benefit;
+- comments explain non-obvious constraints, not syntax;
+- user-controlled text and paths are validated at boundaries;
+- deterministic output avoids ambient clocks, randomness, and locale defaults.
 
-Preferred:
+## Testing Expectations
 
+Changes add tests proportional to risk:
 
+- domain logic uses table-driven unit tests;
+- filesystem behavior uses isolated temporary directories;
+- API behavior uses sanitized fixtures and fake transports;
+- schema changes include representative validation fixtures;
+- themes run shared contract tests;
+- SVG changes include structure, bounds, accessibility, and visual regression checks;
+- Action changes include a consumer-repository fixture;
+- bug fixes include a regression test when practical.
 
-```text
+Live GitHub credentials are not required for pull-request CI.
 
-Add Pirate Theme
+## Documentation And Accessibility
 
-```
+User-facing changes update README or guides. Theme and renderer changes account for contrast, long text, non-color indicators, accessible SVG names, and both supported layouts.
 
+Documentation uses ordinary Markdown, runnable examples, relative repository links, and no assumed knowledge of project internals.
 
+## Compatibility And Releases
 
-Not Preferred:
+- semantic versioning applies to the engine and Action;
+- persisted schemas and theme schemas have explicit integer versions;
+- release notes identify schema changes, changed visuals, and Action input changes;
+- the moving major Action tag is updated only after immutable release verification.
 
+## Pull Request Requirements
 
+A pull request must pass CI, avoid unrelated generated changes, disclose new dependencies, preserve secrets safety, and receive required review under repository policy. Visual changes include before-and-after fixtures or screenshots in the pull request description.
 
-```text
+## Community Standards
 
-Hardcode Pirate Logic Into Engine
+Contributors follow `CODE_OF_CONDUCT.md` and report vulnerabilities through `SECURITY.md`, not public issues. Maintainers use constructive review, document decisions, and prefer sustainable scope over feature volume.
 
-```
+## Acceptance Criteria
 
-
-
-\---
-
-
-
-\# Contributor Types
-
-
-
-The project supports several contribution categories.
-
-
-
-\---
-
-
-
-\# Theme Contributors
-
-
-
-Create entirely new RPG experiences.
-
-
-
-Examples:
-
-
-
-```text
-
-Middle-earth
-
-Pirate Voyage
-
-Space Odyssey
-
-Cyberpunk Run
-
-Witcher Path
-
-```
-
-
-
-Theme contributors are expected to work primarily in:
-
-
-
-```text
-
-themes/
-
-```
-
-
-
-\---
-
-
-
-\# Asset Contributors
-
-
-
-Improve visuals.
-
-
-
-Areas:
-
-
-
-```text
-
-Character Sprites
-
-Terrain Art
-
-Location Markers
-
-Icons
-
-Background Elements
-
-```
-
-
-
-Assets should remain:
-
-
-
-✅ SVG-first
-
-
-
-✅ Lightweight
-
-
-
-✅ GitHub-compatible
-
-
-
-\---
-
-
-
-\# Gameplay Contributors
-
-
-
-Improve progression systems.
-
-
-
-Areas:
-
-
-
-```text
-
-XP Models
-
-Achievements
-
-Titles
-
-Quest Systems
-
-```
-
-
-
-Changes should remain deterministic.
-
-
-
-\---
-
-
-
-\# Documentation Contributors
-
-
-
-Areas:
-
-
-
-```text
-
-Setup Guides
-
-Theme Guides
-
-Architecture Docs
-
-Examples
-
-```
-
-
-
-Documentation contributions are strongly encouraged.
-
-
-
-\---
-
-
-
-\# Engine Contributors
-
-
-
-Areas:
-
-
-
-```text
-
-Performance
-
-Bug Fixes
-
-Refactoring
-
-Testing
-
-Tooling
-
-```
-
-
-
-Engine changes should preserve:
-
-
-
-```text
-
-Theme Compatibility
-
-Deterministic Progression
-
-Specification Compliance
-
-```
-
-
-
-\---
-
-
-
-\# Repository Structure
-
-
-
-```text
-
-.github/
-
-src/
-
-themes/
-
-data/
-
-docs/
-
-specs/
-
-```
-
-
-
-\---
-
-
-
-\# Contribution Workflow
-
-
-
-Recommended workflow:
-
-
-
-```text
-
-Fork Repository
-
-↓
-
-Create Feature Branch
-
-↓
-
-Implement Change
-
-↓
-
-Validate Behaviour
-
-↓
-
-Submit Pull Request
-
-```
-
-
-
-\---
-
-
-
-\# Pull Request Requirements
-
-
-
-Every pull request should:
-
-
-
-✅ Solve one problem
-
-
-
-✅ Include documentation updates if required
-
-
-
-✅ Follow existing architecture
-
-
-
-✅ Preserve theme abstraction
-
-
-
-✅ Avoid introducing breaking changes
-
-
-
-\---
-
-
-
-\# Architecture Rule
-
-
-
-Contributors must preserve:
-
-
-
-```text
-
-Engine
-
-↓
-
-Theme
-
-```
-
-
-
-separation.
-
-
-
-The following should never be hardcoded into engine logic:
-
-
-
-```text
-
-Middle-earth
-
-Moria
-
-Mount Doom
-
-Hobbit
-
-Ring Bearer
-
-```
-
-
-
-These belong exclusively in themes.
-
-
-
-\---
-
-
-
-\# Creating A Theme
-
-
-
-A theme must contain:
-
-
-
-```text
-
-theme.json
-
-map.json
-
-titles.json
-
-achievements.json
-
-palette.json
-
-assets/
-
-```
-
-
-
-\---
-
-
-
-\# Minimum Theme Structure
-
-
-
-```text
-
-themes/
-
-└── my-theme/
-
-&#x20;   ├── theme.json
-
-&#x20;   ├── map.json
-
-&#x20;   ├── titles.json
-
-&#x20;   ├── achievements.json
-
-&#x20;   ├── palette.json
-
-&#x20;   └── assets/
-
-```
-
-
-
-\---
-
-
-
-\# Theme Validation Requirements
-
-
-
-A theme must provide:
-
-
-
-✅ Theme metadata
-
-
-
-✅ Route locations
-
-
-
-✅ XP thresholds
-
-
-
-✅ At least one title
-
-
-
-✅ At least one achievement
-
-
-
-✅ Valid JSON files
-
-
-
-\---
-
-
-
-\# Route Design Guidelines
-
-
-
-Good routes should:
-
-
-
-✅ Tell a story
-
-
-
-✅ Have meaningful milestones
-
-
-
-✅ Progress logically
-
-
-
-✅ End with a clear destination
-
-
-
-Examples:
-
-
-
-```text
-
-Earth → Mars
-
-
-
-Beginner Pirate → Pirate King
-
-
-
-Village → Capital City
-
-
-
-Shire → Mount Doom
-
-```
-
-
-
-\---
-
-
-
-\# Achievement Guidelines
-
-
-
-Good achievements should:
-
-
-
-✅ Feel rewarding
-
-
-
-✅ Be achievable
-
-
-
-✅ Encourage contribution
-
-
-
-✅ Be data-driven
-
-
-
-Avoid:
-
-
-
-❌ Impossible achievements
-
-
-
-❌ Random achievements
-
-
-
-❌ Theme-breaking achievements
-
-
-
-\---
-
-
-
-\# Title Guidelines
-
-
-
-Good titles should:
-
-
-
-✅ Reflect progression
-
-
-
-✅ Escalate naturally
-
-
-
-✅ Match theme identity
-
-
-
-Example:
-
-
-
-```text
-
-Cadet
-
-Navigator
-
-Explorer
-
-Captain
-
-Admiral
-
-Legend
-
-```
-
-
-
-\---
-
-
-
-\# SVG Asset Guidelines
-
-
-
-All assets should be:
-
-
-
-✅ SVG-based
-
-
-
-✅ Open-source friendly
-
-
-
-✅ Lightweight
-
-
-
-✅ Readable at small sizes
-
-
-
-Avoid:
-
-
-
-❌ Large embedded bitmaps
-
-
-
-❌ Heavy visual effects
-
-
-
-❌ Complex filters
-
-
-
-\---
-
-
-
-\# Documentation Standards
-
-
-
-Major changes should update:
-
-
-
-```text
-
-README.md
-
-docs/
-
-specs/
-
-```
-
-
-
-where relevant.
-
-
-
-Documentation is considered part of the feature.
-
-
-
-\---
-
-
-
-\# Future Theme Registry
-
-
-
-Future versions may include:
-
-
-
-```text
-
-Official Themes
-
-Community Themes
-
-Featured Themes
-
-```
-
-
-
-Contributors should design themes so they can be distributed independently.
-
-
-
-\---
-
-
-
-\# Coding Standards
-
-
-
-Contributors should:
-
-
-
-✅ Use TypeScript
-
-
-
-✅ Prefer pure functions
-
-
-
-✅ Prefer small modules
-
-
-
-✅ Follow specifications
-
-
-
-✅ Keep business logic testable
-
-
-
-\---
-
-
-
-\# Testing Expectations
-
-
-
-Changes should not break:
-
-
-
-✅ Journey calculation
-
-
-
-✅ XP calculation
-
-
-
-✅ Achievement evaluation
-
-
-
-✅ SVG generation
-
-
-
-✅ Storage compatibility
-
-
-
-\---
-
-
-
-\# Backwards Compatibility
-
-
-
-Contributions should avoid:
-
-
-
-```text
-
-Breaking existing themes
-
-Breaking storage schemas
-
-Breaking configuration contracts
-
-```
-
-
-
-Backward compatibility is preferred wherever possible.
-
-
-
-\---
-
-
-
-\# Contribution Priorities
-
-
-
-Areas where contributions are most valuable:
-
-
-
-```text
-
-New Themes
-
-SVG Improvements
-
-Documentation
-
-Testing
-
-GitHub API Improvements
-
-Achievement Packs
-
-Title Packs
-
-```
-
-
-
-\---
-
-
-
-\# Recognition
-
-
-
-Contributors should be acknowledged in:
-
-
-
-```text
-
-README.md
-
-CONTRIBUTORS.md
-
-```
-
-
-
-where appropriate.
-
-
-
-\---
-
-
-
-\# Success Criteria
-
-
-
-The contributor experience is successful when:
-
-
-
-✅ New themes can be created without engine changes
-
-
-
-✅ Contributors understand project architecture quickly
-
-
-
-✅ Pull requests remain focused and manageable
-
-
-
-✅ Community-created themes are possible
-
-
-
-✅ Engine stability is preserved
-
-`
-
+- contributors can locate the relevant contract quickly;
+- theme submissions do not require engine edits;
+- behavioral changes include tests and compatibility analysis;
+- release artifacts are reproducible;
+- licensing and security expectations are explicit;
+- contribution requirements remain reasonable for a small fun project.
