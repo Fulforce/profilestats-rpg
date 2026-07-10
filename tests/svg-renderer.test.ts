@@ -32,6 +32,7 @@ describe("renderJourneySvg", () => {
 
     expect(svg).toContain('width="1200" height="420" viewBox="0 0 1200 420"');
     expect(svg).toContain('role="img"');
+    expect(svg).toContain('font-family="DejaVu Sans, sans-serif"');
     expect(svg).toContain("octocat");
     expect(svg).toContain("Adventurer");
     expect(svg).toContain("16,500 / 50,000 XP");

@@ -5,7 +5,7 @@ import type {
   SvgRenderInput
 } from "./types.js";
 
-const FONT = "Arial, Helvetica, sans-serif";
+const FONT = "DejaVu Sans, sans-serif";
 
 export function renderJourneySvg({ view }: SvgRenderInput): string {
   const body = view.layout === "compact" ? renderCompact(view) : renderStandard(view);
