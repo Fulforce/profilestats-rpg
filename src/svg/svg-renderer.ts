@@ -1,313 +1,301 @@
-import type { StoredState } from "../storage/types.js";
-import type { Theme, ThemeMapLocation } from "../theme/types.js";
-import { defaultXPRules } from "../xp/xp-rules.js";
-import type { SvgRenderInput } from "./types.js";
+import type {
+  RenderRouteLocation,
+  RenderSourceRow,
+  RenderViewModel,
+  SvgRenderInput
+} from "./types.js";
 
-const DEFAULT_WIDTH = 1200;
-const DEFAULT_HEIGHT = 360;
-const ROUTE_START_X = 80;
-const ROUTE_END_X = 1120;
-const ROUTE_Y = 246;
+const FONT = "DejaVu Sans, sans-serif";
 
-export function renderJourneySvg({ state, theme, options = {} }: SvgRenderInput): string {
-  const width = options.width ?? DEFAULT_WIDTH;
-  const height = options.height ?? DEFAULT_HEIGHT;
-  const route = createRouteScale(theme, width);
-  const characterX = route.scaleX(state.characterX);
-  const progressBarWidth = Math.round((width - 160) * (state.progressPercent / 100));
-  const completedRouteWidth = Math.max(0, characterX - route.startX);
+export function renderJourneySvg({ view }: SvgRenderInput): string {
+  const body = view.layout === "compact" ? renderCompact(view) : renderStandard(view);
+  const title = `${view.theme.name} Journey for ${view.profile.githubUser}`;
 
   return [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title desc">`,
-    `<title id="title">${escapeXml(theme.manifest.name)} Journey for ${escapeXml(state.metadata.githubUser)}</title>`,
-    `<desc id="desc">Currently at ${escapeXml(state.currentLocation)} with ${state.xp} XP and ${state.progressPercent}% journey progress.</desc>`,
-    `<rect width="${width}" height="${height}" rx="0" fill="${theme.palette.background}"/>`,
-    renderTerrainBands(theme, route),
-    renderHeader(state, theme),
-    renderXpSourceSummary(state, theme),
-    renderStats(state, theme),
-    renderProgressBar(theme, progressBarWidth),
-    renderRouteLine(theme, route, completedRouteWidth),
-    renderMarkers(theme, state, route),
-    renderCharacter(theme, characterX),
-    renderFooter(state, theme, height),
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${view.width}" height="${view.height}" viewBox="0 0 ${view.width} ${view.height}" role="img" aria-labelledby="psrpg-title psrpg-desc">`,
+    `<title id="psrpg-title">${escapeXml(title)}</title>`,
+    `<desc id="psrpg-desc">${escapeXml(view.accessibleDescription)}</desc>`,
+    body,
     `</svg>`
   ].join("\n");
 }
 
-function renderHeader(state: StoredState, theme: Theme): string {
+function renderStandard(view: RenderViewModel): string {
+  const palette = view.theme.palette;
+  const sourceRows = view.sources?.slice(0, 4) ?? [];
+  const status = view.progress.status === "COMPLETED" ? "Journey complete" : "Journey active";
+  const destinationLabel =
+    view.progress.status === "COMPLETED" ? "Final location" : "Next destination";
+  const destination = view.progress.nextLocation ?? view.progress.currentLocation;
+  const progressWidth = Math.round(720 * (view.progress.percent / 100));
+
   return [
-    `<text x="80" y="52" fill="${theme.palette.text}" font-family="Georgia, serif" font-size="26" font-weight="700">${escapeXml(theme.manifest.name)} Journey</text>`,
-    `<text x="80" y="84" fill="${theme.palette.secondary}" font-family="Arial, sans-serif" font-size="18">${escapeXml(state.metadata.githubUser)} the ${escapeXml(state.title)}</text>`,
-    `<text x="1120" y="54" text-anchor="end" fill="${theme.palette.secondary}" font-family="Arial, sans-serif" font-size="13" font-weight="700">Journey Started</text>`,
-    `<text x="1120" y="78" text-anchor="end" fill="${theme.palette.text}" font-family="Arial, sans-serif" font-size="17" font-weight="700">${escapeXml(state.metadata.journeyStartDate)}</text>`
-  ].join("\n");
+    background(view, 16),
+    `<g font-family="${FONT}">`,
+    `<text x="40" y="36" fill="${palette.secondary}" font-size="12" font-weight="700" letter-spacing="1.2">${escapeXml(view.theme.name.toUpperCase())} JOURNEY</text>`,
+    `<text x="40" y="70" fill="${palette.text}" font-size="26" font-weight="700">${escapeXml(truncate(view.profile.githubUser, 32))}</text>`,
+    view.profile.title
+      ? `<text x="40" y="94" fill="${palette.secondary}" font-size="15">${escapeXml(truncate(view.profile.title, 42))}</text>`
+      : "",
+    `<text x="1160" y="38" text-anchor="end" fill="${palette.primary}" font-size="13" font-weight="700">${status}</text>`,
+    `<text x="1160" y="65" text-anchor="end" fill="${palette.secondary}" font-size="12">Started ${escapeXml(view.dates.started)}</text>`,
+    `<text x="1160" y="85" text-anchor="end" fill="${palette.secondary}" font-size="12">${view.progress.status === "COMPLETED" ? `Completed ${escapeXml(view.dates.completed ?? view.dates.updated)}` : `Updated ${escapeXml(view.dates.updated)}`}</text>`,
+    renderStandardSources(view, sourceRows),
+    `<g transform="translate(390 112)">`,
+    panel(palette, 0, 0, 770, 106),
+    `<text x="22" y="27" fill="${palette.secondary}" font-size="12" font-weight="700">PROGRESS</text>`,
+    `<text x="22" y="57" fill="${palette.text}" font-size="22" font-weight="700">${formatNumber(view.progress.awardedXP)} / ${formatNumber(view.progress.targetXP)} XP</text>`,
+    `<text x="742" y="57" text-anchor="end" fill="${palette.primary}" font-size="24" font-weight="800">${formatPercent(view.progress.percent)}%</text>`,
+    `<rect x="22" y="75" width="720" height="9" rx="4.5" fill="${palette.secondary}" opacity="0.2"/>`,
+    `<rect x="22" y="75" width="${progressWidth}" height="9" rx="4.5" fill="${palette.primary}"/>`,
+    `</g>`,
+    `<g transform="translate(40 236)">`,
+    `<text x="0" y="0" fill="${palette.secondary}" font-size="12" font-weight="700">CURRENT LOCATION</text>`,
+    `<text x="0" y="26" fill="${palette.text}" font-size="18" font-weight="700">${escapeXml(truncate(view.progress.currentLocation, 30))}</text>`,
+    `<text x="390" y="0" fill="${palette.secondary}" font-size="12" font-weight="700">${destinationLabel.toUpperCase()}</text>`,
+    `<text x="390" y="26" fill="${palette.text}" font-size="18" font-weight="700">${escapeXml(truncate(destination, 30))}</text>`,
+    view.achievements
+      ? `<text x="1120" y="18" text-anchor="end" fill="${palette.secondary}" font-size="13"><tspan fill="${palette.text}" font-weight="800">${view.achievements.count}</tspan> achievements</text>`
+      : "",
+    `</g>`,
+    renderJourneyMap(view),
+    renderWarning(view, 40, 399),
+    `</g>`
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
-function renderXpSourceSummary(state: StoredState, theme: Theme): string {
-  const rows = getTopXpSources(state).slice(0, 3);
-
+function renderStandardSources(view: RenderViewModel, rows: RenderSourceRow[]): string {
+  const palette = view.theme.palette;
+  if (!view.sources) return "";
   return [
-    `<g transform="translate(392 20)" font-family="Arial, sans-serif">`,
-    `<rect x="0" y="0" width="416" height="80" rx="8" fill="${theme.palette.text}" opacity="0.08" stroke="${theme.palette.secondary}" stroke-width="1" stroke-opacity="0.28"/>`,
-    `<text x="18" y="23" fill="${theme.palette.text}" font-size="14" font-weight="800">XP Sources</text>`,
-    ...rows.map((row, index) => {
-      const y = 43 + index * 17;
-
-      return [
-        `<circle cx="21" cy="${y - 4}" r="4" fill="${theme.palette.primary}" opacity="${index === 0 ? 1 : 0.65}"/>`,
-        `<text x="34" y="${y}" fill="${theme.palette.secondary}" font-size="12" font-weight="700">${escapeXml(row.label)}</text>`,
-        `<text x="392" y="${y}" text-anchor="end" fill="${theme.palette.text}" font-size="12" font-weight="800">+${formatNumber(row.xp)} XP</text>`
-      ].join("\n");
-    }),
+    `<g transform="translate(40 112)">`,
+    panel(palette, 0, 0, 330, 106),
+    `<text x="18" y="25" fill="${palette.secondary}" font-size="12" font-weight="700">TOP XP SOURCES</text>`,
+    ...(rows.length > 0
+      ? rows.map((row, index) => sourceRow(row, index, palette, 3))
+      : [
+          `<text x="18" y="58" fill="${palette.secondary}" font-size="13">No counted activity yet</text>`
+        ]),
     `</g>`
   ].join("\n");
 }
 
-function renderStats(state: StoredState, theme: Theme): string {
-  const stats = [
-    ["XP", formatNumber(state.xp)],
-    ["Progress", `${state.progressPercent}%`],
-    ["Location", state.currentLocation],
-    ["Next", state.nextLocation ?? "Journey Complete"],
-    ["Achievements", `${state.achievementCount}`]
-  ];
-
-  return [
-    `<g font-family="Arial, sans-serif">`,
-    ...stats.map(([label, value], index) => {
-      const x = 80 + index * 210;
-      return [
-        `<text x="${x}" y="128" fill="${theme.palette.secondary}" font-size="13" font-weight="700">${label}</text>`,
-        `<text x="${x}" y="154" fill="${theme.palette.text}" font-size="19" font-weight="700">${escapeXml(value)}</text>`
-      ].join("\n");
-    }),
-    `</g>`
-  ].join("\n");
-}
-
-function renderProgressBar(theme: Theme, progressBarWidth: number): string {
-  return [
-    `<rect x="80" y="178" width="1040" height="10" rx="5" fill="${theme.palette.secondary}" opacity="0.22"/>`,
-    `<rect x="80" y="178" width="${progressBarWidth}" height="10" rx="5" fill="${theme.palette.primary}"/>`
-  ].join("\n");
-}
-
-function renderRouteLine(
-  theme: Theme,
-  route: ReturnType<typeof createRouteScale>,
-  completedRouteWidth: number
+function sourceRow(
+  row: RenderSourceRow,
+  index: number,
+  palette: RenderViewModel["theme"]["palette"],
+  maxRows: number
 ): string {
+  const y = 47 + index * (maxRows === 5 ? 17 : 18);
   return [
-    `<line x1="${route.startX}" y1="${ROUTE_Y}" x2="${route.endX}" y2="${ROUTE_Y}" stroke="${theme.palette.secondary}" stroke-width="7" stroke-linecap="round" opacity="0.26"/>`,
-    `<line x1="${route.startX}" y1="${ROUTE_Y}" x2="${route.startX + completedRouteWidth}" y2="${ROUTE_Y}" stroke="${theme.palette.primary}" stroke-width="7" stroke-linecap="round" opacity="0.92"/>`
+    `<text x="18" y="${y}" fill="${palette.text}" font-size="11" font-weight="700">${escapeXml(row.label)}</text>`,
+    `<text x="190" y="${y}" text-anchor="end" fill="${palette.secondary}" font-size="11">${formatNumber(row.count)}</text>`,
+    `<text x="312" y="${y}" text-anchor="end" fill="${palette.primary}" font-size="11" font-weight="800">+${formatNumber(row.earnedXP)} XP</text>`
   ].join("\n");
 }
 
-function renderMarkers(
-  theme: Theme,
-  state: StoredState,
-  route: ReturnType<typeof createRouteScale>
-): string {
-  const currentLocationId = locationIdByName(theme, state.currentLocation);
-  const visibleLabelIds = getVisibleLabelIds(theme, state);
+function renderJourneyMap(view: RenderViewModel): string {
+  const palette = view.theme.palette;
+  const routeStart = 55;
+  const routeEnd = 1145;
+  const routeY = 326;
+  const route = createRouteScale(view.route, routeStart, routeEnd);
+  const current = view.route.find((location) => location.status === "current") ?? view.route[0];
+  const currentX = route.scaleX(current?.x ?? view.progress.characterX);
+  const completed = view.progress.status === "COMPLETED";
+  const labels = placeLabels(view.route, route.scaleX, routeStart, routeEnd);
 
   return [
-    `<g font-family="Arial, sans-serif">`,
-    ...theme.map.locations.map((location) => {
+    `<g data-region="journey-map">`,
+    `<line x1="${routeStart}" y1="${routeY}" x2="${routeEnd}" y2="${routeY}" stroke="${palette.secondary}" stroke-width="5" stroke-linecap="round" opacity="0.35"${completed ? "" : ' stroke-dasharray="8 7"'}/>`,
+    `<line x1="${routeStart}" y1="${routeY}" x2="${completed ? routeEnd : currentX}" y2="${routeY}" stroke="${palette.primary}" stroke-width="7" stroke-linecap="round"/>`,
+    ...view.route.map((location) => {
       const x = route.scaleX(location.x);
-      const status = getMarkerStatus(location, state, currentLocationId);
-      const radius = status === "current" ? 10 : 7;
-      const fill =
-        status === "future"
-          ? theme.palette.background
-          : status === "current"
-            ? theme.palette.accent
-            : theme.palette.primary;
-      const opacity = status === "future" ? 0.55 : 1;
-      const showLabel = visibleLabelIds.has(location.id);
-      const labelY = locationLabelY(location, status);
-
-      return [
-        status === "current"
-          ? `<circle cx="${x}" cy="${ROUTE_Y}" r="18" fill="${theme.palette.accent}" opacity="0.18"/>`
-          : "",
-        `<circle cx="${x}" cy="${ROUTE_Y}" r="${radius}" fill="${fill}" stroke="${theme.palette.primary}" stroke-width="3" opacity="${opacity}"/>`,
-        showLabel
-          ? `<text x="${x}" y="${labelY}" text-anchor="middle" fill="${theme.palette.text}" font-size="${status === "current" ? 13 : 11}" font-weight="${status === "current" ? 800 : 700}" opacity="${opacity}">${escapeXml(shortLocationName(location.name))}</text>`
-          : ""
-      ].filter(Boolean).join("\n");
+      if (location.status === "current") {
+        return `<path d="M ${x} ${routeY - 11} L ${x + 11} ${routeY} L ${x} ${routeY + 11} L ${x - 11} ${routeY} Z" fill="${palette.accent}" stroke="${palette.text}" stroke-width="2"/>`;
+      }
+      if (location.status === "future") {
+        return `<circle cx="${x}" cy="${routeY}" r="6" fill="${palette.background}" stroke="${palette.secondary}" stroke-width="2"/>`;
+      }
+      return `<circle cx="${x}" cy="${routeY}" r="6" fill="${palette.primary}" stroke="${palette.background}" stroke-width="2"/><path d="M ${x - 3} ${routeY} l 2 2 l 4 -5" fill="none" stroke="${palette.background}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
     }),
+    ...labels.map(
+      (label) =>
+        `<text x="${label.x}" y="${label.y}" text-anchor="middle" fill="${palette.text}" font-size="11" font-weight="700">${escapeXml(truncate(label.name, 18))}</text>`
+    ),
+    renderCharacter(view, currentX - 18, routeY - 62, 36, 45),
     `</g>`
   ].join("\n");
 }
 
-function renderCharacter(theme: Theme, characterX: number): string {
-  const x = characterX;
-  const y = ROUTE_Y - 54;
+function renderCompact(view: RenderViewModel): string {
+  const palette = view.theme.palette;
+  const rows = view.sources?.slice(0, 5) ?? [];
+  const radius = 39;
+  const circumference = 2 * Math.PI * radius;
+  const dash = round(circumference * (view.progress.percent / 100));
+  const destination = view.progress.nextLocation ?? view.progress.currentLocation;
 
   return [
-    `<g transform="translate(${x} ${y})" aria-label="Current character position">`,
-    `<circle cx="0" cy="0" r="24" fill="${theme.palette.accent}" opacity="0.2"/>`,
-    `<path d="M 0 42 L -8 28 L 8 28 Z" fill="${theme.palette.accent}" stroke="${theme.palette.text}" stroke-width="2" stroke-linejoin="round"/>`,
-    `<circle cx="0" cy="-10" r="11" fill="${theme.palette.accent}" stroke="${theme.palette.text}" stroke-width="2"/>`,
-    `<path d="M -16 9 Q 0 -2 16 9 L 11 29 L -11 29 Z" fill="${theme.palette.primary}" stroke="${theme.palette.text}" stroke-width="2" stroke-linejoin="round"/>`,
-    `<path d="M -18 -13 Q 0 -30 18 -13 Q 0 -18 -18 -13 Z" fill="${theme.palette.secondary}" stroke="${theme.palette.text}" stroke-width="2" stroke-linejoin="round"/>`,
+    background(view, 12),
+    `<g font-family="${FONT}">`,
+    `<text x="18" y="28" fill="${palette.text}" font-size="17" font-weight="800">${escapeXml(truncate(view.profile.githubUser, 24))}</text>`,
+    view.profile.title
+      ? `<text x="18" y="46" fill="${palette.secondary}" font-size="11">${escapeXml(truncate(view.profile.title, 38))}</text>`
+      : "",
+    view.sources
+      ? [
+          `<g transform="translate(0 14)">`,
+          ...(rows.length > 0
+            ? rows.map((row, index) => compactSourceRow(row, index, palette))
+            : [
+                `<text x="18" y="74" fill="${palette.secondary}" font-size="11">No counted activity yet</text>`
+              ]),
+          `</g>`
+        ].join("\n")
+      : "",
+    `<g transform="translate(420 84)">`,
+    `<circle cx="0" cy="0" r="${radius}" fill="none" stroke="${palette.secondary}" stroke-width="8" opacity="0.2"/>`,
+    `<circle cx="0" cy="0" r="${radius}" fill="none" stroke="${palette.primary}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${dash} ${round(circumference - dash)}" transform="rotate(-90)"/>`,
+    `<text x="0" y="5" text-anchor="middle" fill="${palette.text}" font-size="17" font-weight="800">${formatPercent(view.progress.percent)}%</text>`,
+    `<text x="0" y="22" text-anchor="middle" fill="${palette.secondary}" font-size="10">${formatCompactNumber(view.progress.awardedXP)}/${formatCompactNumber(view.progress.targetXP)} XP</text>`,
+    `</g>`,
+    view.achievements
+      ? `<text x="420" y="143" text-anchor="middle" fill="${palette.secondary}" font-size="10">${view.achievements.count} achievements</text>`
+      : "",
+    `<line x1="18" y1="153" x2="477" y2="153" stroke="${palette.secondary}" opacity="0.25"/>`,
+    `<text x="18" y="171" fill="${palette.secondary}" font-size="10">AT</text>`,
+    `<text x="38" y="171" fill="${palette.text}" font-size="11" font-weight="700">${escapeXml(truncate(view.progress.currentLocation, 20))}</text>`,
+    `<text x="245" y="171" fill="${palette.secondary}" font-size="10">${view.progress.status === "COMPLETED" ? "FINISHED" : "NEXT"}</text>`,
+    `<text x="477" y="171" text-anchor="end" fill="${palette.text}" font-size="11" font-weight="700">${escapeXml(truncate(destination, 20))}</text>`,
+    `<text x="18" y="188" fill="${palette.secondary}" font-size="10">Started ${escapeXml(view.dates.started)}</text>`,
+    `<text x="477" y="188" text-anchor="end" fill="${palette.secondary}" font-size="10">${view.progress.status === "COMPLETED" ? `Completed ${escapeXml(view.dates.completed ?? view.dates.updated)}` : `Updated ${escapeXml(view.dates.updated)}`}</text>`,
+    renderWarning(view, 330, 18),
     `</g>`
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
-function renderFooter(state: StoredState, theme: Theme, height: number): string {
+function compactSourceRow(
+  row: RenderSourceRow,
+  index: number,
+  palette: RenderViewModel["theme"]["palette"]
+): string {
+  const y = 50 + index * 17;
+  return `<text x="18" y="${y}" fill="${palette.text}" font-size="10"><tspan font-weight="700">${escapeXml(row.label)}</tspan><tspan x="174" text-anchor="end" fill="${palette.secondary}">${formatNumber(row.count)}</tspan><tspan x="278" text-anchor="end" fill="${palette.primary}" font-weight="800">+${formatNumber(row.earnedXP)} XP</tspan></text>`;
+}
+
+function renderCharacter(
+  view: RenderViewModel,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): string {
+  return `<svg x="${x}" y="${y}" width="${width}" height="${height}" viewBox="${view.theme.character.viewBox}" aria-hidden="true">${view.theme.character.content}</svg>`;
+}
+
+function renderWarning(view: RenderViewModel, x: number, y: number): string {
+  if (view.activity.complete) return "";
+  const palette = view.theme.palette;
+  return `<g aria-label="Activity data incomplete"><circle cx="${x + 6}" cy="${y - 4}" r="6" fill="none" stroke="${palette.accent}" stroke-width="2"/><text x="${x + 6}" y="${y - 1}" text-anchor="middle" fill="${palette.accent}" font-size="10" font-weight="800">!</text><text x="${x + 18}" y="${y}" fill="${palette.secondary}" font-size="11">Activity data incomplete</text></g>`;
+}
+
+function background(view: RenderViewModel, radius: number): string {
+  const palette = view.theme.palette;
   return [
-    `<text x="80" y="${height - 38}" fill="${theme.palette.secondary}" font-family="Arial, sans-serif" font-size="15">Next Destination: ${escapeXml(state.nextLocation ?? "Journey Complete")}</text>`,
-    `<text x="1120" y="${height - 38}" text-anchor="end" fill="${theme.palette.secondary}" font-family="Arial, sans-serif" font-size="13">Last updated ${escapeXml(state.lastUpdated)}</text>`
+    `<rect width="${view.width}" height="${view.height}" rx="${radius}" fill="${palette.background}"/>`,
+    `<rect x="1" y="1" width="${view.width - 2}" height="${view.height - 2}" rx="${radius - 1}" fill="none" stroke="${palette.secondary}" stroke-opacity="0.35"/>`
   ].join("\n");
 }
 
-function renderTerrainBands(theme: Theme, route: ReturnType<typeof createRouteScale>): string {
-  const bands = theme.map.locations.map((location, index) => {
-    const nextLocation = theme.map.locations[index + 1];
-    const x = route.scaleX(location.x);
-    const nextX = nextLocation ? route.scaleX(nextLocation.x) : route.endX;
-    const width = Math.max(18, nextX - x);
-    const fill = terrainFill(theme, location.terrain);
+function panel(
+  palette: RenderViewModel["theme"]["palette"],
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): string {
+  return `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="9" fill="${palette.text}" opacity="0.055" stroke="${palette.secondary}" stroke-width="1" stroke-opacity="0.3"/>`;
+}
 
-    return `<rect x="${x}" y="222" width="${width}" height="54" fill="${fill}" opacity="0.16"/>`;
-  });
+function placeLabels(
+  locations: RenderRouteLocation[],
+  scaleX: (x: number) => number,
+  minX: number,
+  maxX: number
+): Array<{ name: string; x: number; y: number }> {
+  const occupied: Array<{ left: number; right: number; y: number }> = [];
+  const selected: Array<{ name: string; x: number; y: number }> = [];
+  const candidates = locations
+    .filter((location) => location.labelPriority !== undefined)
+    .sort(
+      (a, b) =>
+        (a.labelPriority ?? 99) - (b.labelPriority ?? 99) || a.x - b.x || a.id.localeCompare(b.id)
+    );
 
-  return `<g aria-hidden="true">${bands.join("\n")}</g>`;
+  for (const location of candidates) {
+    const markerX = scaleX(location.x);
+    const halfWidth = Math.min(58, Math.max(22, truncate(location.name, 18).length * 3.2));
+    const x = Math.max(minX + halfWidth, Math.min(maxX - halfWidth, markerX));
+    const ys = location.labelPriority && location.labelPriority <= 2 ? [357, 303] : [303, 357];
+    const y = ys.find(
+      (candidateY) =>
+        !occupied.some(
+          (box) =>
+            Math.abs(box.y - candidateY) < 15 &&
+            x - halfWidth < box.right + 8 &&
+            x + halfWidth > box.left - 8
+        )
+    );
+    if (y === undefined) continue;
+    occupied.push({ left: x - halfWidth, right: x + halfWidth, y });
+    selected.push({ name: location.name, x, y });
+  }
+
+  return selected.sort((a, b) => a.x - b.x || a.y - b.y);
 }
 
 function createRouteScale(
-  theme: Theme,
-  width: number
-): { scaleX: (x: number) => number; startX: number; endX: number } {
-  const values = theme.map.locations.map((location) => location.x);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const start = width === DEFAULT_WIDTH ? ROUTE_START_X : Math.round(width * 0.067);
-  const end = width === DEFAULT_WIDTH ? ROUTE_END_X : Math.round(width * 0.933);
-
+  locations: RenderRouteLocation[],
+  start: number,
+  end: number
+): { scaleX: (x: number) => number } {
+  const xs = locations.map((location) => location.x);
+  const min = Math.min(...xs);
+  const max = Math.max(...xs);
   return {
-    startX: start,
-    endX: end,
-    scaleX: (x: number) => {
-      if (max === min) {
-        return Math.round((start + end) / 2);
-      }
-
-      return Math.round(start + ((x - min) / (max - min)) * (end - start));
-    }
+    scaleX: (x: number) =>
+      max === min
+        ? Math.round((start + end) / 2)
+        : Math.round(start + ((x - min) / (max - min)) * (end - start))
   };
 }
 
-function getMarkerStatus(
-  location: ThemeMapLocation,
-  state: StoredState,
-  currentLocationId: string | undefined
-): "completed" | "current" | "future" {
-  if (location.id === currentLocationId) {
-    return "current";
-  }
-
-  return location.requiredXP <= state.xp ? "completed" : "future";
-}
-
-function locationIdByName(theme: Theme, name: string): string | undefined {
-  return theme.map.locations.find((location) => location.name === name)?.id;
-}
-
-function getVisibleLabelIds(theme: Theme, state: StoredState): Set<string> {
-  const landmarkIds = new Set(["RIVENDELL", "LOTHLORIEN", "DEAD_MARSHES", "SHELOBS_LAIR"]);
-  const first = theme.map.locations[0];
-  const final = theme.map.locations.at(-1);
-  const current = theme.map.locations.find((location) => location.name === state.currentLocation);
-  const next = theme.map.locations.find((location) => location.name === state.nextLocation);
-  const landmarks = theme.map.locations.filter((location) => landmarkIds.has(location.id));
-  const labels = [first, current, next, ...landmarks, final].filter(
-    (location): location is ThemeMapLocation => Boolean(location)
-  );
-
-  return new Set(labels.map((location) => location.id));
-}
-
-function locationLabelY(location: ThemeMapLocation, status: "completed" | "current" | "future"): number {
-  if (status === "current") {
-    return ROUTE_Y + 44;
-  }
-
-  return location.requiredXP % 2 === 0 ? ROUTE_Y + 31 : ROUTE_Y + 47;
-}
-
-function shortLocationName(name: string): string {
-  return name
-    .replace("The ", "")
-    .replace("Lothlorien", "Lothlorien")
-    .replace("Shelob's Lair", "Shelob")
-    .slice(0, 14);
+function truncate(value: string, maxCharacters: number): string {
+  if (value.length <= maxCharacters) return value;
+  return `${value.slice(0, Math.max(1, maxCharacters - 1)).trimEnd()}…`;
 }
 
 function formatNumber(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
-function getTopXpSources(state: StoredState): Array<{ label: string; xp: number }> {
-  const rows = [
-    {
-      label: "Commits",
-      xp: state.stats.commits * defaultXPRules.commits
-    },
-    {
-      label: "Pull requests",
-      xp:
-        state.stats.prsOpened * defaultXPRules.prsOpened +
-        state.stats.prsMerged * defaultXPRules.prsMerged
-    },
-    {
-      label: "Issues",
-      xp:
-        state.stats.issuesOpened * defaultXPRules.issuesOpened +
-        state.stats.issuesClosed * defaultXPRules.issuesClosed
-    },
-    {
-      label: "Reviews",
-      xp: state.stats.reviewsSubmitted * defaultXPRules.reviewsSubmitted
-    },
-    {
-      label: "Repositories",
-      xp: state.stats.repositoriesCreated * defaultXPRules.repositoriesCreated
-    },
-    {
-      label: "Releases",
-      xp: state.stats.releasesPublished * defaultXPRules.releasesPublished
-    },
-    {
-      label: "Streaks",
-      xp: state.stats.streaks * defaultXPRules.streaks
-    }
-  ]
-    .filter((row) => row.xp > 0)
-    .sort((a, b) => b.xp - a.xp);
-
-  return rows.length > 0 ? rows : [{ label: "No counted activity yet", xp: 0 }];
+function formatCompactNumber(value: number): string {
+  if (value < 1000) return String(value);
+  const compact = Math.round((value / 1000) * 10) / 10;
+  return `${Number.isInteger(compact) ? compact.toFixed(0) : compact}k`;
 }
 
-function terrainFill(theme: Theme, terrain: string | undefined): string {
-  switch (terrain) {
-    case "grasslands":
-    case "forest":
-    case "woodland":
-      return theme.palette.primary;
-    case "volcano":
-    case "wasteland":
-      return theme.palette.accent;
-    case "swamp":
-    case "cavern":
-    case "mountains":
-      return theme.palette.secondary;
-    default:
-      return theme.palette.secondary;
-  }
+function formatPercent(value: number): string {
+  return Number.isInteger(value) ? String(value) : value.toFixed(1).replace(/\.0$/, "");
+}
+
+function round(value: number): number {
+  return Math.round(value * 100) / 100;
 }
 
 function escapeXml(value: string): string {

@@ -15,10 +15,10 @@ import {
 import {
   buildStorageArtifacts,
   buildStorageSnapshot,
-  readStorage,
-  toRenderState
+  readStorage
 } from "../storage/storage-engine.js";
 import { buildJourneySvgArtifact } from "../svg/svg-writer.js";
+import { buildRenderViewModel } from "../svg/render-view-model.js";
 import { loadTheme } from "../theme/theme-loader.js";
 import { calculateTitleResult } from "../title/title-engine.js";
 import type { ActivityProvider, UpdateRunnerOptions, UpdateSummary } from "./types.js";
@@ -43,8 +43,8 @@ export async function runUpdate(options: UpdateRunnerOptions = {}): Promise<Upda
       dailyLog: previous.dailyLog,
       events: previous.events
     };
-    const renderState = toRenderState(snapshot.state);
-    await writeFilesTransaction([buildJourneySvgArtifact(renderState, theme, svgPath)]);
+    const renderView = buildRenderViewModel(snapshot.state, theme, config.display);
+    await writeFilesTransaction([buildJourneySvgArtifact(renderView, svgPath)]);
     return { config, snapshot, generatedEvents: [] };
   }
 
@@ -97,10 +97,10 @@ export async function runUpdate(options: UpdateRunnerOptions = {}): Promise<Upda
     },
     previous
   );
-  const renderState = toRenderState(snapshot.state);
+  const renderView = buildRenderViewModel(snapshot.state, theme, config.display);
   const artifacts = [
     ...buildStorageArtifacts(snapshot, dataDirectory),
-    buildJourneySvgArtifact(renderState, theme, svgPath)
+    buildJourneySvgArtifact(renderView, svgPath)
   ];
   await writeFilesTransaction(artifacts);
 

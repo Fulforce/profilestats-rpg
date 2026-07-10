@@ -3,7 +3,7 @@ import type {
   AchievementConditionType,
   AchievementDefinition,
   RawThemeFiles,
-  Theme,
+  ThemeData,
   ThemeMap,
   ThemeMapLocation,
   ThemePalette,
@@ -54,7 +54,7 @@ export function validateThemeFiles(themeId: string, files: RawThemeFiles): Theme
   return issues;
 }
 
-export function normalizeThemeFiles(files: RawThemeFiles): Theme {
+export function normalizeThemeFiles(files: RawThemeFiles): ThemeData {
   if (
     !isRecord(files.manifest) ||
     !isRecord(files.map) ||
@@ -163,6 +163,7 @@ function validateMap(map: unknown, issues: ThemeValidationIssue[]): Set<string> 
 
     validateOptionalString(location.terrain, `${path}.terrain`, issues);
     validateOptionalString(location.description, `${path}.description`, issues);
+    validateOptionalBoolean(location.landmark, `${path}.landmark`, issues);
   });
 
   return locationIds;
@@ -298,16 +299,15 @@ function validatePalette(palette: unknown, issues: ThemeValidationIssue[]): void
 function normalizeMap(map: Record<string, unknown>): ThemeMap {
   return {
     targetXP: Number(map.targetXP),
-    locations: (map.locations as Record<string, unknown>[]).map(
-      (location): ThemeMapLocation => ({
-        id: String(location.id),
-        name: String(location.name),
-        requiredXP: Number(location.requiredXP),
-        x: Number(location.x),
-        terrain: toOptionalString(location.terrain),
-        description: toOptionalString(location.description)
-      })
-    )
+    locations: (map.locations as Record<string, unknown>[]).map((location): ThemeMapLocation => ({
+      id: String(location.id),
+      name: String(location.name),
+      requiredXP: Number(location.requiredXP),
+      x: Number(location.x),
+      terrain: toOptionalString(location.terrain),
+      description: toOptionalString(location.description),
+      landmark: toOptionalBoolean(location.landmark)
+    }))
   };
 }
 
@@ -351,11 +351,7 @@ function normalizePalette(palette: Record<string, unknown>): ThemePalette {
   };
 }
 
-function validateString(
-  value: unknown,
-  path: string,
-  issues: ThemeValidationIssue[]
-): void {
+function validateString(value: unknown, path: string, issues: ThemeValidationIssue[]): void {
   if (typeof value !== "string" || value.trim().length === 0) {
     issues.push({ path, message: "must be a non-empty string" });
   }
@@ -369,6 +365,20 @@ function validateOptionalString(
   if (value !== undefined && (typeof value !== "string" || value.trim().length === 0)) {
     issues.push({ path, message: "must be a non-empty string when provided" });
   }
+}
+
+function validateOptionalBoolean(
+  value: unknown,
+  path: string,
+  issues: ThemeValidationIssue[]
+): void {
+  if (value !== undefined && typeof value !== "boolean") {
+    issues.push({ path, message: "must be a boolean when provided" });
+  }
+}
+
+function toOptionalBoolean(value: unknown): boolean | undefined {
+  return value === undefined ? undefined : Boolean(value);
 }
 
 function validateId(value: unknown, path: string, issues: ThemeValidationIssue[]): void {

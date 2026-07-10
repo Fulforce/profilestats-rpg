@@ -28,6 +28,7 @@
       "name": "Rivendell",
       "requiredXP": 8500,
       "x": 300,
+      "landmark": true,
       "terrain": "valley"
     },
     {
@@ -42,6 +43,7 @@
       "name": "Lothlorien",
       "requiredXP": 16500,
       "x": 480,
+      "landmark": true,
       "terrain": "forest"
     },
     {
@@ -63,6 +65,7 @@
       "name": "Dead Marshes",
       "requiredXP": 28500,
       "x": 715,
+      "landmark": true,
       "terrain": "swamp"
     },
     {
@@ -91,6 +94,7 @@
       "name": "Shelob's Lair",
       "requiredXP": 45500,
       "x": 1015,
+      "landmark": true,
       "terrain": "cavern"
     },
     {

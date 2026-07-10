@@ -3,6 +3,7 @@ import { join, resolve, sep } from "node:path";
 import { ThemeValidationError } from "./theme-error.js";
 import { normalizeThemeFiles, validateThemeFiles } from "./theme-validator.js";
 import type { RawThemeFiles, Theme } from "./types.js";
+import { sanitizeSvgAsset } from "./svg-asset-sanitizer.js";
 
 const REQUIRED_THEME_FILES = [
   "theme.json",
@@ -11,6 +12,7 @@ const REQUIRED_THEME_FILES = [
   "achievements.json",
   "palette.json"
 ] as const;
+const MAX_ASSET_BYTES = 100 * 1024;
 
 export async function loadTheme(themeId: string, themesRoot = "themes"): Promise<Theme> {
   const rootPath = resolve(themesRoot);
@@ -29,7 +31,36 @@ export async function loadTheme(themeId: string, themesRoot = "themes"): Promise
     throw new ThemeValidationError(issues);
   }
 
-  return normalizeThemeFiles(files);
+  const theme = normalizeThemeFiles(files);
+  const characterPath = join(themePath, "assets", "character.svg");
+  const characterSource = await readAsset(characterPath);
+
+  return {
+    ...theme,
+    assets: {
+      character: sanitizeSvgAsset(
+        characterSource,
+        characterPath,
+        `psrpg-${theme.manifest.id}-character`
+      )
+    }
+  };
+}
+
+async function readAsset(path: string): Promise<string> {
+  try {
+    const source = await readFile(path, "utf8");
+    if (Buffer.byteLength(source, "utf8") > MAX_ASSET_BYTES) {
+      throw new ThemeValidationError([
+        { path, message: `must not exceed ${MAX_ASSET_BYTES} bytes` }
+      ]);
+    }
+    return source;
+  } catch (error) {
+    if (error instanceof ThemeValidationError) throw error;
+    const message = error instanceof Error ? error.message : "unknown error";
+    throw new ThemeValidationError([{ path, message }]);
+  }
 }
 
 async function readThemeFiles(themePath: string): Promise<RawThemeFiles> {

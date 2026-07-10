@@ -11,6 +11,7 @@ Versioned configuration
   -> scaled route and title thresholds
   -> journey achievements and lifecycle events
   -> versioned state and history documents
+  -> shared render view model
   -> static SVG
   -> transactional artifact write
 ```
@@ -27,7 +28,7 @@ Completed journeys skip activity collection and render their frozen persisted re
 - `JourneyArchiveDocument` retains completed and explicitly abandoned journeys.
 - `DailyLogDocument` keys snapshots by journey ID and UTC date.
 - `EventDocument` retains deterministic lifecycle and unlock events.
-- `StoredState` is a temporary adapter for the existing SVG renderer and will become a shared render view model in Phase 3.
+- `RenderViewModel` is the renderer-owned projection of persisted campaign facts, display switches, and sanitized theme visuals used by both layouts.
 
 ## Campaign Boundary
 
@@ -40,6 +41,14 @@ Awarded XP is monotonic within an active campaign. Completion freezes the record
 Themes own route locations, titles, achievements, palette, story text, and visual assets. The engine owns validation, scaling, calculations, lifecycle rules, storage, and rendering mechanics.
 
 Theme-specific names and behavior must not be hardcoded in engine modules.
+
+Bundled character SVGs are loaded before collection, constrained by size, parsed and sanitized, and assigned deterministic namespaced IDs. The renderer receives only sanitized asset content.
+
+## Renderer Boundary
+
+The standard and compact renderers share one view model and formatting primitives. Their dimensions are fixed by layout rather than caller-controlled geometry. The view model owns completion and partial-data semantics; layout functions only decide placement and visual emphasis.
+
+Generated SVG is parsed and safety-checked in memory before it joins the artifact transaction. Chromium regression tests measure text and map bounds, compare native and scaled screenshots, and ensure each fixture produces nonblank pixels.
 
 ## Artifact Transaction
 

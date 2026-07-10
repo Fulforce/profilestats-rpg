@@ -17,6 +17,7 @@ export type ThemeMapLocation = {
   x: number;
   terrain?: string;
   description?: string;
+  landmark?: boolean;
 };
 
 export type ThemeMap = {
@@ -30,6 +31,11 @@ export type ThemePalette = {
   secondary: string;
   accent: string;
   text: string;
+};
+
+export type ThemeSvgAsset = {
+  content: string;
+  viewBox: string;
 };
 
 export type AchievementCategory = "JOURNEY" | "XP" | "CONTRIBUTION" | "MILESTONE";
@@ -62,7 +68,12 @@ export type Theme = {
   titles: Title[];
   achievements: AchievementDefinition[];
   palette: ThemePalette;
+  assets: {
+    character: ThemeSvgAsset;
+  };
 };
+
+export type ThemeData = Omit<Theme, "assets">;
 
 export type ThemeValidationIssue = {
   path: string;
