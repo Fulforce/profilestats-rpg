@@ -86,6 +86,8 @@ Archived journey IDs cannot be reused.
 
 Unknown configuration keys and paths outside the repository are rejected.
 
+The `standard` layout produces a 1200 by 420 journey card with a full route map. The `compact` layout produces a 495 by 195 profile card without the full map. Display switches control the XP source summary, current title, and achievement count in either layout.
+
 ## Generated Files
 
 ```text
@@ -102,6 +104,7 @@ The JSON and SVG files are written as one transaction. A failed collection, calc
 
 ```bash
 npm ci
+npx playwright install --with-deps chromium
 npm run check
 npm start
 ```
@@ -112,10 +115,10 @@ Run the complete update pipeline with:
 GITHUB_TOKEN=YOUR_TOKEN npm run update
 ```
 
-The generated SVG contains no JavaScript, remote assets, custom fonts, or browser runtime dependency.
+The generated SVG contains no JavaScript, remote assets, custom fonts, or browser runtime dependency. Bundled character artwork is parsed, sanitized, namespaced, and inlined into the static output.
 
 ## Themes
 
 Bundled themes live under `themes/` and contain route, title, achievement, palette, and asset data. The engine remains theme-agnostic; new theme content should not be hardcoded into core modules.
 
-See the [specification index](specs/README.md), [architecture](docs/architecture.md), and [contribution guide](CONTRIBUTING.md) for more detail.
+See the [specification index](specs/README.md), [renderer guide](docs/renderer.md), [architecture](docs/architecture.md), and [contribution guide](CONTRIBUTING.md) for more detail.

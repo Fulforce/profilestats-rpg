@@ -13,8 +13,7 @@ import type {
   PreviousStorage,
   StateDocument,
   StorageSnapshot,
-  StorageUpdateInput,
-  StoredState
+  StorageUpdateInput
 } from "./types.js";
 
 const ENGINE_VERSION = "0.1.0";
@@ -86,46 +85,6 @@ export function buildStorageArtifacts(snapshot: StorageSnapshot, dataDir = "data
     { path: join(dataDir, DAILY_LOG_FILE), content: serializeJson(snapshot.dailyLog) },
     { path: join(dataDir, EVENTS_FILE), content: serializeJson(snapshot.events) }
   ];
-}
-
-export function toRenderState(state: StateDocument): StoredState {
-  const record = state.current;
-  const currentLocation = record.route.find(
-    (location) => location.id === record.progress.currentLocationId
-  );
-  const nextLocation = record.route.find(
-    (location) => location.id === record.progress.nextLocationId
-  );
-
-  if (!currentLocation) {
-    throw new StorageError(
-      "STORAGE_INVALID",
-      `Current journey location is missing: ${record.progress.currentLocationId}`
-    );
-  }
-
-  return {
-    metadata: {
-      theme: record.definition.themeId,
-      githubUser: state.profile.githubUser,
-      journeyStartDate: record.definition.startDate,
-      targetXP: record.definition.targetXP,
-      xpMultiplier: record.definition.xpMultiplier
-    },
-    lastUpdated: record.lastUpdated.slice(0, 10),
-    xp: record.progress.xp,
-    title: record.titleName,
-    currentLocation: currentLocation.name,
-    nextLocation: nextLocation?.name,
-    progressPercent: record.progress.progressPercent,
-    characterX: record.progress.characterX,
-    segmentProgressPercent: record.progress.segmentProgressPercent,
-    achievementCount: record.achievements.length,
-    achievements: record.achievements.map((achievement) => achievement.achievementId),
-    stats: record.activity.counts,
-    activityReport: record.activity,
-    xpBreakdown: record.xp
-  };
 }
 
 export function getSnapshotForDate(

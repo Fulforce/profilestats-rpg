@@ -1,122 +1,132 @@
 import { mkdtemp, readFile } from "node:fs/promises";
+import { Buffer } from "node:buffer";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
+import type { DisplayConfig } from "../src/config/types.js";
+import { buildRenderViewModel } from "../src/svg/render-view-model.js";
 import { renderJourneySvg } from "../src/svg/svg-renderer.js";
+import { validateGeneratedSvg } from "../src/svg/svg-validator.js";
 import { writeJourneySvg } from "../src/svg/svg-writer.js";
 import { loadTheme } from "../src/theme/theme-loader.js";
-import type { StoredState } from "../src/storage/types.js";
+import {
+  activeRenderState,
+  completedRenderState,
+  longTextRenderState,
+  partialRenderState,
+  zeroRenderState
+} from "./fixtures/render-states.js";
 
-const state: StoredState = {
-  metadata: {
-    theme: "middle-earth",
-    githubUser: "octocat",
-    journeyStartDate: "2026-01-01",
-    targetXP: 50000,
-    xpMultiplier: 1
-  },
-  lastUpdated: "2026-07-09",
-  xp: 12450,
-  title: "Adventurer",
-  currentLocation: "Lothlorien",
-  nextLocation: "Amon Hen",
-  progressPercent: 52.4,
-  characterX: 475,
-  segmentProgressPercent: 48,
-  achievementCount: 8,
-  achievements: ["LEFT_SHIRE", "FIRST_PR_MERGED"],
-  stats: {
-    commits: 1204,
-    prsOpened: 75,
-    prsMerged: 42,
-    issuesOpened: 28,
-    issuesClosed: 41,
-    reviewsSubmitted: 67,
-    repositoriesCreated: 3,
-    releasesPublished: 5,
-    streaks: 12
-  },
-  activityReport: {
-    counts: {
-      commits: 1204,
-      prsOpened: 75,
-      prsMerged: 42,
-      issuesOpened: 28,
-      issuesClosed: 41,
-      reviewsSubmitted: 67,
-      repositoriesCreated: 3,
-      releasesPublished: 5,
-      streaks: 12
-    },
-    githubUser: "octocat",
-    window: { from: "2026-01-01", to: "2026-07-09" },
-    collectedAt: "2026-07-09T12:00:00.000Z",
-    source: "github-public-api",
-    complete: true,
-    warnings: []
-  },
-  xpBreakdown: {
-    ruleSetVersion: "1.0.0",
-    sources: [],
-    rawXP: 12450,
-    multiplier: 1,
-    calculatedXP: 12450,
-    awardedXP: 12450
-  }
+const standard: DisplayConfig = {
+  layout: "standard",
+  showStats: true,
+  showTitle: true,
+  showAchievements: true
 };
 
 describe("renderJourneySvg", () => {
-  it("renders the primary journey information into a static SVG", async () => {
+  it("renders the standard information hierarchy from the shared view model", async () => {
     const theme = await loadTheme("middle-earth");
-    const svg = renderJourneySvg({ state, theme });
+    const view = buildRenderViewModel(activeRenderState(), theme, standard);
+    const svg = renderJourneySvg({ view });
 
-    expect(svg).toContain('<svg xmlns="http://www.w3.org/2000/svg"');
-    expect(svg).toContain("Middle-earth Journey");
-    expect(svg).toContain("octocat the Adventurer");
-    expect(svg).toContain("12,450");
-    expect(svg).toContain("52.4%");
+    expect(svg).toContain('width="1200" height="420" viewBox="0 0 1200 420"');
+    expect(svg).toContain('role="img"');
+    expect(svg).toContain("octocat");
+    expect(svg).toContain("Adventurer");
+    expect(svg).toContain("16,500 / 50,000 XP");
+    expect(svg).toContain("33%");
     expect(svg).toContain("Lothlorien");
     expect(svg).toContain("Amon Hen");
-    expect(svg).toContain("Achievements");
-    expect(svg).toContain("Journey Started");
-    expect(svg).toContain("XP Sources");
-    expect(svg).toContain("Pull requests");
-    expect(svg).toContain("+3,180 XP");
-    expect(svg).toContain("Commits");
-    expect(svg).toContain("+2,408 XP");
-    expect(svg).toContain("Streaks");
-    expect(svg).toContain("+2,400 XP");
-    expect(svg).toContain("Rivendell");
-    expect(svg).toContain("Dead Marshes");
-    expect(svg).toContain("Shelob");
-    expect(svg).toContain("Current character position");
-    expect(svg).toContain('stroke-width="7"');
-    expect(svg).not.toContain("<script");
+    expect(svg).toContain("PRs merged");
+    expect(svg).toContain("42");
+    expect(svg).toContain("+2,520 XP");
+    expect(svg).toContain("psrpg-middle-earth-character-cloak");
+    expect(svg).not.toContain('id="cloak"');
+    expect(Buffer.byteLength(svg, "utf8")).toBeLessThan(250 * 1024);
+    expect(() => validateGeneratedSvg(svg)).not.toThrow();
   });
 
-  it("escapes user-controlled text", async () => {
+  it("renders the fixed compact layout without the full route map", async () => {
     const theme = await loadTheme("middle-earth");
-    const svg = renderJourneySvg({
-      state: {
-        ...state,
-        metadata: {
-          ...state.metadata,
-          githubUser: "octo<cat>&"
-        }
-      },
-      theme
+    const view = buildRenderViewModel(activeRenderState(), theme, {
+      ...standard,
+      layout: "compact"
+    });
+    const svg = renderJourneySvg({ view });
+
+    expect(svg).toContain('width="495" height="195" viewBox="0 0 495 195"');
+    expect(svg).not.toContain('data-region="journey-map"');
+    expect(svg).toContain("33%");
+    expect(svg).toContain("16.5k/50k XP");
+    expect(svg).toContain("Lothlorien");
+    expect(svg).toContain("Amon Hen");
+  });
+
+  it("renders zero, completed, partial, and long-text states", async () => {
+    const theme = await loadTheme("middle-earth");
+    const zero = renderJourneySvg({
+      view: buildRenderViewModel(zeroRenderState(), theme, standard)
+    });
+    const completed = renderJourneySvg({
+      view: buildRenderViewModel(completedRenderState(), theme, standard)
+    });
+    const partial = renderJourneySvg({
+      view: buildRenderViewModel(partialRenderState(), theme, standard)
+    });
+    const long = renderJourneySvg({
+      view: buildRenderViewModel(longTextRenderState(), theme, {
+        ...standard,
+        layout: "compact"
+      })
     });
 
-    expect(svg).toContain("octo&lt;cat&gt;&amp;");
-    expect(svg).not.toContain("octo<cat>&");
+    expect(zero).toContain("No counted activity yet");
+    expect(completed).toContain("Journey complete");
+    expect(completed).toContain("Completed 2026-07-09");
+    expect(completed).not.toContain('stroke-dasharray="8 7"');
+    expect(completed).toMatch(/y="357"[^>]*>Mount Doom<\/text>/);
+    expect(partial).toContain("Activity data incomplete");
+    expect(partial).toContain("Commit totals may be lower than the public total.");
+    expect(long).toContain("…");
+    expect(long).toContain("octocat-with-a-very-long-but-valid-profile-name");
+  });
+
+  it("honors display switches and produces byte-identical output", async () => {
+    const theme = await loadTheme("middle-earth");
+    const view = buildRenderViewModel(activeRenderState(), theme, {
+      layout: "standard",
+      showStats: false,
+      showTitle: false,
+      showAchievements: false
+    });
+    const first = renderJourneySvg({ view });
+    const second = renderJourneySvg({ view });
+
+    expect(first).toBe(second);
+    expect(first).not.toContain("TOP XP SOURCES");
+    expect(first).not.toContain("Adventurer");
+    expect(first).not.toContain("achievements</text>");
+  });
+
+  it("escapes hostile display strings", async () => {
+    const theme = await loadTheme("middle-earth");
+    const state = activeRenderState();
+    state.profile.githubUser = 'octo<cat>&"';
+    const svg = renderJourneySvg({ view: buildRenderViewModel(state, theme, standard) });
+
+    expect(svg).toContain("octo&lt;cat&gt;&amp;&quot;");
+    expect(svg).not.toContain("octo<cat>");
+    expect(() => validateGeneratedSvg(svg)).not.toThrow();
   });
 });
 
 describe("writeJourneySvg", () => {
-  it("writes output/journey.svg", async () => {
+  it("validates and writes output/journey.svg", async () => {
     const theme = await loadTheme("middle-earth");
+    const view = buildRenderViewModel(activeRenderState(), theme, standard);
     const outputDir = await mkdtemp(join(tmpdir(), "profilestats-rpg-svg-"));
-    const outputPath = await writeJourneySvg(state, theme, join(outputDir, "journey.svg"));
+    const outputPath = await writeJourneySvg(view, join(outputDir, "journey.svg"));
 
     expect(outputPath.endsWith("journey.svg")).toBe(true);
     await expect(readFile(outputPath, "utf8")).resolves.toContain("Middle-earth Journey");

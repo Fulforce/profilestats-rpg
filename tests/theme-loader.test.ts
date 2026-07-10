@@ -19,6 +19,8 @@ describe("loadTheme", () => {
     expect(theme.titles.map((title) => title.id)).toContain("LEGEND_OF_MIDDLE_EARTH");
     expect(theme.achievements.map((achievement) => achievement.id)).toContain("FIRST_PR_MERGED");
     expect(theme.palette.background).toBe("#F7F0D8");
+    expect(theme.assets.character.viewBox).toBe("0 0 80 100");
+    expect(theme.assets.character.content).toContain("psrpg-middle-earth-character-cloak");
   });
 
   it("rejects theme paths outside the configured root", async () => {

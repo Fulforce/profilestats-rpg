@@ -7,7 +7,6 @@ import {
   buildStorageSnapshot,
   getSnapshotForDate,
   readStorage,
-  toRenderState,
   writeStorageSnapshot
 } from "../src/storage/storage-engine.js";
 import type { PreviousStorage } from "../src/storage/types.js";
@@ -146,21 +145,6 @@ describe("buildStorageSnapshot", () => {
     expect(second.journeys.journeys[0]).toMatchObject({
       archiveReason: "COMPLETED",
       archivedAt: "2026-07-09T12:00:00.000Z"
-    });
-  });
-
-  it("adapts the persisted contract for the current renderer", () => {
-    const snapshot = buildStorageSnapshot(
-      { githubUser: "octocat", current: activeRecord },
-      emptyStorage
-    );
-
-    expect(toRenderState(snapshot.state)).toMatchObject({
-      xp: 1500,
-      title: "Wanderer",
-      currentLocation: "Bree",
-      nextLocation: "Weathertop",
-      achievements: ["XP_1000"]
     });
   });
 });

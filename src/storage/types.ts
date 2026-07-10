@@ -1,11 +1,4 @@
-import type {
-  Activity,
-  ActivityReport,
-  JourneyEvent,
-  JourneyRecord,
-  SchemaVersion,
-  XPResult
-} from "../domain/types.js";
+import type { JourneyEvent, JourneyRecord, SchemaVersion } from "../domain/types.js";
 
 export type StateDocument = {
   schemaVersion: SchemaVersion;
@@ -67,28 +60,4 @@ export type StorageUpdateInput = {
   current: JourneyRecord;
   archivedJourneys?: ArchivedJourneyRecord[];
   newEvents?: JourneyEvent[];
-};
-
-// Phase 3 replaces this renderer adapter with a dedicated shared view model.
-export type StoredState = {
-  metadata: {
-    theme: string;
-    githubUser: string;
-    journeyStartDate: string;
-    targetXP: number;
-    xpMultiplier: number;
-  };
-  lastUpdated: string;
-  xp: number;
-  title: string;
-  currentLocation: string;
-  nextLocation?: string;
-  progressPercent: number;
-  characterX: number;
-  segmentProgressPercent: number;
-  achievementCount: number;
-  achievements: string[];
-  stats: Activity;
-  activityReport: ActivityReport;
-  xpBreakdown: XPResult;
 };

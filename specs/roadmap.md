@@ -47,6 +47,8 @@ Exit criteria: a user can complete one journey, configure another start date and
 
 ## Phase 3: Renderer Product Pass
 
+Status: complete.
+
 - refactor rendering around a shared view model;
 - finish the standard information hierarchy and collision-aware map labels;
 - implement the compact layout;
