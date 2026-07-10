@@ -1,4 +1,4 @@
-import type { Activity } from "../domain/types.js";
+import type { ActivityReport } from "../domain/types.js";
 
 export type GitHubFetch = typeof fetch;
 
@@ -7,6 +7,10 @@ export type GitHubClientOptions = {
   fetchImpl?: GitHubFetch;
   graphqlEndpoint?: string;
   restEndpoint?: string;
+  timeoutMs?: number;
+  maxRetries?: number;
+  retryBaseDelayMs?: number;
+  sleepImpl?: (milliseconds: number) => Promise<void>;
 };
 
 export type GraphQLResponse<T> = {
@@ -24,6 +28,7 @@ export type ContributionCalendarResponse = {
   user: {
     contributionsCollection: {
       totalCommitContributions: number;
+      totalPullRequestReviewContributions: number;
       contributionCalendar: {
         weeks: Array<{
           contributionDays: Array<{
@@ -41,8 +46,9 @@ export type CollectActivityOptions = {
   startDate: string;
   token?: string;
   fetchImpl?: GitHubFetch;
+  date?: Date;
 };
 
 export type ActivityCollector = {
-  collectActivity(options: CollectActivityOptions): Promise<Activity>;
+  collectActivity(options: CollectActivityOptions): Promise<ActivityReport>;
 };

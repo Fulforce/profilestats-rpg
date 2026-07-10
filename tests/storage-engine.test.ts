@@ -1,13 +1,21 @@
-import { mkdtemp, readFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
 import {
   buildStorageSnapshot,
   getSnapshotForDate,
-  persistStorageUpdate
+  persistStorageUpdate,
+  readStorage
 } from "../src/storage/storage-engine.js";
-import type { Activity, AchievementResult, JourneyState, TitleResult } from "../src/domain/types.js";
+import type {
+  Activity,
+  ActivityReport,
+  AchievementResult,
+  JourneyState,
+  TitleResult,
+  XPResult
+} from "../src/domain/types.js";
 import type { AppConfig } from "../src/config/types.js";
 import type { PreviousStorage } from "../src/storage/types.js";
 
@@ -36,6 +44,25 @@ const activity: Activity = {
   repositoriesCreated: 1,
   releasesPublished: 0,
   streaks: 1
+};
+
+const activityReport: ActivityReport = {
+  counts: activity,
+  githubUser: "octocat",
+  window: { from: "2026-01-01", to: "2026-07-09" },
+  collectedAt: "2026-07-09T12:00:00.000Z",
+  source: "github-public-api",
+  complete: true,
+  warnings: []
+};
+
+const xp: XPResult = {
+  ruleSetVersion: "1.0.0",
+  sources: [],
+  rawXP: 1500,
+  multiplier: 1,
+  calculatedXP: 1500,
+  awardedXP: 1500
 };
 
 const journey: JourneyState = {
@@ -90,7 +117,12 @@ describe("buildStorageSnapshot", () => {
           segmentProgressPercent: 20,
           achievementCount: 1,
           achievements: ["XP_1000"],
-          stats: { ...activity, prsMerged: 0 }
+          stats: { ...activity, prsMerged: 0 },
+          activityReport: {
+            ...activityReport,
+            counts: { ...activity, prsMerged: 0 }
+          },
+          xpBreakdown: { ...xp, calculatedXP: 1000, awardedXP: 1000 }
         }
       ],
       events: [
@@ -105,7 +137,8 @@ describe("buildStorageSnapshot", () => {
     const snapshot = buildStorageSnapshot(
       {
         config,
-        activity,
+        activity: activityReport,
+        xp,
         journey,
         title,
         achievements,
@@ -153,7 +186,8 @@ describe("buildStorageSnapshot", () => {
   it("supports historical snapshot lookup by date", () => {
     const snapshot = buildStorageSnapshot({
       config,
-      activity,
+      activity: activityReport,
+      xp,
       journey,
       title,
       achievements,
@@ -174,7 +208,8 @@ describe("persistStorageUpdate", () => {
     await persistStorageUpdate(
       {
         config,
-        activity,
+        activity: activityReport,
+        xp,
         journey,
         title,
         achievements,
@@ -186,11 +221,22 @@ describe("persistStorageUpdate", () => {
     const state = JSON.parse(await readFile(join(dataDir, "state.json"), "utf8")) as {
       title: string;
     };
-    const dailyLog = JSON.parse(await readFile(join(dataDir, "daily-log.json"), "utf8")) as unknown[];
+    const dailyLog = JSON.parse(
+      await readFile(join(dataDir, "daily-log.json"), "utf8")
+    ) as unknown[];
     const events = JSON.parse(await readFile(join(dataDir, "events.json"), "utf8")) as unknown[];
 
     expect(state.title).toBe("Wanderer");
     expect(dailyLog).toHaveLength(1);
     expect(events).toHaveLength(2);
+  });
+
+  it("rejects malformed persisted data with a stable error", async () => {
+    const dataDir = await mkdtemp(join(tmpdir(), "profilestats-rpg-storage-invalid-"));
+    await writeFile(join(dataDir, "daily-log.json"), JSON.stringify({ not: "an array" }));
+
+    await expect(readStorage(dataDir)).rejects.toMatchObject({
+      code: "STORAGE_INVALID"
+    });
   });
 });

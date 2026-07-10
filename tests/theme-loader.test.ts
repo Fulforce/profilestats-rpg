@@ -20,4 +20,10 @@ describe("loadTheme", () => {
     expect(theme.achievements.map((achievement) => achievement.id)).toContain("FIRST_PR_MERGED");
     expect(theme.palette.background).toBe("#F7F0D8");
   });
+
+  it("rejects theme paths outside the configured root", async () => {
+    await expect(loadTheme("../middle-earth")).rejects.toMatchObject({
+      code: "THEME_INVALID"
+    });
+  });
 });

@@ -1,3 +1,7 @@
+export const SCHEMA_VERSION = 1 as const;
+
+export type SchemaVersion = typeof SCHEMA_VERSION;
+
 export type Activity = {
   commits: number;
   prsOpened: number;
@@ -10,10 +14,41 @@ export type Activity = {
   streaks: number;
 };
 
+export type ActivityMetric = keyof Activity;
+
+export type CollectionWarning = {
+  code: string;
+  metric?: ActivityMetric;
+  message: string;
+};
+
+export type ActivityReport = {
+  counts: Activity;
+  githubUser: string;
+  window: {
+    from: string;
+    to: string;
+  };
+  collectedAt: string;
+  source: "github-public-api";
+  complete: boolean;
+  warnings: CollectionWarning[];
+};
+
+export type XPSource = {
+  metric: ActivityMetric;
+  count: number;
+  unitXP: number;
+  earnedXP: number;
+};
+
 export type XPResult = {
+  ruleSetVersion: string;
+  sources: XPSource[];
   rawXP: number;
   multiplier: number;
-  finalXP: number;
+  calculatedXP: number;
+  awardedXP: number;
 };
 
 export type JourneyState = {

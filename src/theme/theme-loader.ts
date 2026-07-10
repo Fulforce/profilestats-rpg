@@ -1,5 +1,5 @@
-import { mkdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { readFile } from "node:fs/promises";
+import { join, resolve, sep } from "node:path";
 import { ThemeValidationError } from "./theme-error.js";
 import { normalizeThemeFiles, validateThemeFiles } from "./theme-validator.js";
 import type { RawThemeFiles, Theme } from "./types.js";
@@ -13,7 +13,15 @@ const REQUIRED_THEME_FILES = [
 ] as const;
 
 export async function loadTheme(themeId: string, themesRoot = "themes"): Promise<Theme> {
-  const themePath = join(themesRoot, themeId);
+  const rootPath = resolve(themesRoot);
+  const themePath = resolve(rootPath, themeId);
+
+  if (!themePath.startsWith(`${rootPath}${sep}`)) {
+    throw new ThemeValidationError([
+      { path: "theme", message: "theme path must stay inside the themes directory" }
+    ]);
+  }
+
   const files = await readThemeFiles(themePath);
   const issues = validateThemeFiles(themeId, files);
 
@@ -21,14 +29,15 @@ export async function loadTheme(themeId: string, themesRoot = "themes"): Promise
     throw new ThemeValidationError(issues);
   }
 
-  await ensureAssetDirectories(themePath);
-
   return normalizeThemeFiles(files);
 }
 
 async function readThemeFiles(themePath: string): Promise<RawThemeFiles> {
   const entries = await Promise.all(
-    REQUIRED_THEME_FILES.map(async (fileName) => [fileName, await readJson(join(themePath, fileName))])
+    REQUIRED_THEME_FILES.map(async (fileName) => [
+      fileName,
+      await readJson(join(themePath, fileName))
+    ])
   );
 
   return {
@@ -47,12 +56,4 @@ async function readJson(path: string): Promise<unknown> {
     const message = error instanceof Error ? error.message : "unknown error";
     throw new ThemeValidationError([{ path, message }]);
   }
-}
-
-async function ensureAssetDirectories(themePath: string): Promise<void> {
-  await Promise.all(
-    ["assets/sprites", "assets/terrain", "assets/icons", "assets/backgrounds"].map((directory) =>
-      mkdir(join(themePath, directory), { recursive: true })
-    )
-  );
 }

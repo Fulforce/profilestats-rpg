@@ -1,4 +1,12 @@
-import type { Activity, Event, JourneyState, TitleResult, AchievementResult } from "../domain/types.js";
+import type {
+  Activity,
+  ActivityReport,
+  Event,
+  JourneyState,
+  TitleResult,
+  AchievementResult,
+  XPResult
+} from "../domain/types.js";
 import type { AppConfig } from "../config/types.js";
 
 export type StorageMetadata = {
@@ -22,6 +30,8 @@ export type StoredState = {
   achievementCount: number;
   achievements: string[];
   stats: Activity;
+  activityReport: ActivityReport;
+  xpBreakdown: XPResult;
 };
 
 export type DailyLogEntry = Omit<StoredState, "metadata" | "lastUpdated"> & {
@@ -30,7 +40,8 @@ export type DailyLogEntry = Omit<StoredState, "metadata" | "lastUpdated"> & {
 
 export type StorageInput = {
   config: AppConfig;
-  activity: Activity;
+  activity: ActivityReport;
+  xp: XPResult;
   journey: JourneyState;
   title: TitleResult;
   achievements: AchievementResult;
