@@ -1,6 +1,7 @@
 import type { Achievement, Title } from "../domain/types.js";
 
 export type ThemeManifest = {
+  schemaVersion?: 1;
   id: string;
   name: string;
   version: string;
@@ -15,6 +16,7 @@ export type ThemeMapLocation = {
   name: string;
   requiredXP: number;
   x: number;
+  y?: number;
   terrain?: string;
   description?: string;
   landmark?: boolean;
@@ -50,7 +52,8 @@ export type AchievementConditionType =
   | "issuesClosed"
   | "reviewsSubmitted"
   | "repositoriesCreated"
-  | "releasesPublished";
+  | "releasesPublished"
+  | "streaks";
 
 export type AchievementCondition = {
   type: AchievementConditionType;

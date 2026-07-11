@@ -124,6 +124,8 @@ The default Middle-earth theme must clearly state that it is an unofficial fan w
 
 Theme loading is local, deterministic, and side-effect free after file reads. Validation accumulates all issues and reports file paths and fields. It verifies required files, schema versions, referential integrity, ordering, thresholds, contrast, asset safety, licensing presence, and supported sizes.
 
+During the Phase 5 implementation sequence, the loader contains one temporary compatibility path for the bundled pre-v1 `middle-earth` directory. Every other theme is required to use schema version 1. The Middle-earth migration issue removes this exception when it adds the final schema, licensing, provenance, and attribution files; it is not a general legacy-theme compatibility promise.
+
 ## Compatibility
 
 - additive optional fields require a minor theme version;
