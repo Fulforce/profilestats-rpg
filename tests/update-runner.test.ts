@@ -65,17 +65,26 @@ describe("runUpdate", () => {
 
   it("reports no changes when an identical run is repeated", async () => {
     const fixture = await createRunFixture();
-    const options = {
+    const first = await runUpdate({
       ...fixture,
       date: new Date("2026-07-09T12:00:00Z"),
       activityProvider: async () => makeReport(activity, "2026-07-09T12:00:00.000Z")
-    };
-    await runUpdate(options);
-    const repeated = await runUpdate(options);
+    });
+    const repeated = await runUpdate({
+      ...fixture,
+      date: new Date("2026-07-09T18:00:00Z"),
+      activityProvider: async () => makeReport(activity, "2026-07-09T18:00:00.000Z")
+    });
 
     expect(repeated.changedPaths).toEqual([]);
     expect(repeated.generatedEvents).toEqual([]);
     expect(repeated.snapshot.dailyLog.snapshots).toHaveLength(1);
+    expect(repeated.snapshot.state.current.lastUpdated).toBe(
+      first.snapshot.state.current.lastUpdated
+    );
+    expect(repeated.snapshot.state.current.activity.collectedAt).toBe(
+      first.snapshot.state.current.activity.collectedAt
+    );
   });
 
   it("keeps awarded XP monotonic and events deduplicated", async () => {

@@ -156,6 +156,8 @@ The normal target runtime is below 60 seconds and the hard target is below 2 min
 
 Two runs against unchanged activity on the same UTC day produce no second snapshot, event, or commit. A completed journey with unchanged display settings skips collection and produces no commit.
 
+Collection timestamps are not meaningful state changes. When a same-day collection produces an otherwise identical journey record, the engine preserves the existing `collectedAt` and `lastUpdated` values while still rerendering from current display configuration.
+
 ## Release Verification
 
 Publishing is deliberately separated from implementation. After the implementation has passed review, an immutable prerelease is published and exercised from a separate consumer repository. Stable or moving tags are not created as part of the implementation review.
