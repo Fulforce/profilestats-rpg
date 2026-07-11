@@ -51,6 +51,15 @@ The final owner/repository spelling is release metadata and may differ from this
 
 The repository exposes `action.yml` as a JavaScript Action with a checked-in, reproducible `dist/` bundle. Consumers do not run `npm install` for this project and do not depend on the repository's development files.
 
+Decision record for Phase 4:
+
+- the Action is authored in TypeScript and bundled as JavaScript with `@vercel/ncc`;
+- `dist/` is committed and CI must reject a bundle that differs from a clean rebuild;
+- both the supplied fork workflow and reusable installations invoke `action.yml` and therefore the same `runUpdate` engine;
+- the consumer checkout owns configuration, generated state, history, and SVG output, while bundled themes load from the installed Action release;
+- `commit-changes` remains safely opt-in, although the recommended profile workflow enables it explicitly;
+- implementation review precedes publication; immutable prerelease validation is tracked as a separate release task.
+
 Release tags follow semantic versioning:
 
 - immutable tags such as `v1.2.3` identify exact releases;
@@ -147,6 +156,8 @@ The normal target runtime is below 60 seconds and the hard target is below 2 min
 Two runs against unchanged activity on the same UTC day produce no second snapshot, event, or commit. A completed journey with unchanged display settings skips collection and produces no commit.
 
 ## Release Verification
+
+Publishing is deliberately separated from implementation. After the implementation has passed review, an immutable prerelease is published and exercised from a separate consumer repository. Stable or moving tags are not created as part of the implementation review.
 
 CI for a release must:
 

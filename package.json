@@ -6,6 +6,8 @@
   "private": true,
   "scripts": {
     "build": "tsc --noEmit",
+    "build:action": "ncc build src/action/index.ts -o dist --minify --source-map",
+    "check:action": "npm run build:action && git diff --exit-code -- dist",
     "start": "tsx src/cli.ts",
     "update": "tsx src/update.ts",
     "test": "vitest run",
@@ -15,7 +17,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "check": "npm run build && npm run lint && npm run test",
-    "check:ci": "npm run check && npm run test:visual"
+    "check:ci": "npm run check && npm run check:action && npm run test:visual"
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.9.10",
@@ -23,6 +25,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@vercel/ncc": "^0.38.3",
     "@playwright/test": "^1.61.1",
     "@types/node": "^22.10.2",
     "@types/pngjs": "^6.0.5",

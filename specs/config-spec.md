@@ -129,6 +129,8 @@ allow-abandon     optional boolean, default false
 
 Journey settings must not be duplicated as Action inputs. This preserves one version-controlled source of truth.
 
+The consumer repository owns this configuration and all generated state. The installed Action supplies executable engine code and bundled themes only; it does not persist consumer data outside the checked-out repository.
+
 ## Acceptance Criteria
 
 - fork and Action installations load the same schema;

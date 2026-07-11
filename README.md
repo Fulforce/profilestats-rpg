@@ -4,9 +4,46 @@ Turn public GitHub activity into a static RPG journey card for a profile README.
 
 The engine collects public activity, awards explainable XP, advances a character through a themed route, unlocks journey achievements, and writes versioned history plus a profile-ready SVG. The default bundled theme is `middle-earth`.
 
-## Setup
+## Install In An Existing Profile Repository
 
-1. Fork this repository.
+Add `.github/profile-stats-rpg.yml` to your profile repository using the configuration below, then add `.github/workflows/update-profile-rpg.yml`:
+
+```yaml
+name: Update Profile RPG
+
+on:
+  workflow_dispatch:
+  # Enable only after a successful manual run.
+  # schedule:
+  #   - cron: "17 5 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: profile-stats-rpg-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: Fulforce/profilestats-rpg@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          commit-changes: true
+```
+
+Run the workflow manually before enabling its schedule. The Action stores the generated SVG and journey JSON in your repository; this project operates no hosted database or service.
+
+`commit-changes` defaults to `false`. The example opts in because a profile repository normally wants the generated files committed. With it disabled, `contents: read` is sufficient and the workflow can handle generated files itself. Protected branches should use generation-only mode and a separate pull-request workflow because the Action never bypasses branch protection.
+
+For reproducible or security-sensitive installations, replace `@v1` with an immutable release tag or full commit SHA.
+
+## Fork Setup
+
+1. Fork this repository. Fork mode runs the same packaged Action and generation engine as existing-repository installations.
 2. Edit [.github/profile-stats-rpg.yml](.github/profile-stats-rpg.yml):
 
 ```yaml
@@ -56,6 +93,12 @@ schedule:
 ```
 
 Repository settings, branch protection, secrets, and Actions permissions do not copy from the host repository into a fork.
+
+## Action Contract
+
+The JavaScript Action accepts `github-token`, `config-path`, `commit-changes`, and `allow-abandon`. Gameplay settings remain in `.github/profile-stats-rpg.yml`. It exposes `changed`, `svg-path`, `journey-status`, and `progress-percent` outputs.
+
+The checked-in `dist/` bundle is the executable release artifact. Contributors rebuild it with `npm run build:action`; CI verifies that it matches the TypeScript Action source.
 
 ## Journey Lifecycle
 
