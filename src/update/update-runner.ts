@@ -24,6 +24,7 @@ import { loadTheme } from "../theme/theme-loader.js";
 import { calculateTitleResult } from "../title/title-engine.js";
 import type { ActivityProvider, UpdateRunnerOptions, UpdateSummary } from "./types.js";
 import { calculateXP } from "../xp/xp-engine.js";
+import type { JourneyRecord } from "../domain/types.js";
 
 export async function runUpdate(options: UpdateRunnerOptions = {}): Promise<UpdateSummary> {
   const runDate = options.date ?? new Date();
@@ -88,6 +89,29 @@ export async function runUpdate(options: UpdateRunnerOptions = {}): Promise<Upda
     previousRecord: plan.previousRecord,
     timestamp
   });
+
+  if (isUnchangedSameDayRecord(record, plan.previousRecord)) {
+    const snapshot = {
+      state: previous.state!,
+      journeys: previous.journeys,
+      dailyLog: previous.dailyLog,
+      events: previous.events
+    };
+    const renderView = buildRenderViewModel(snapshot.state, theme, config.display);
+    const artifacts = [buildJourneySvgArtifact(renderView, svgPath)];
+    const changedPaths = await writeChangedArtifacts(artifacts);
+    return {
+      config,
+      snapshot,
+      generatedEvents: [],
+      artifactPaths: [
+        ...buildStorageArtifacts(snapshot, dataDirectory).map(({ path }) => path),
+        svgPath
+      ],
+      changedPaths
+    };
+  }
+
   const generatedEvents = buildJourneyEvents(
     record,
     title,
@@ -118,6 +142,31 @@ export async function runUpdate(options: UpdateRunnerOptions = {}): Promise<Upda
     generatedEvents,
     artifactPaths: artifacts.map(({ path }) => path),
     changedPaths
+  };
+}
+
+function isUnchangedSameDayRecord(
+  candidate: JourneyRecord,
+  previous: JourneyRecord | undefined
+): boolean {
+  if (!previous || candidate.lastUpdated.slice(0, 10) !== previous.lastUpdated.slice(0, 10)) {
+    return false;
+  }
+
+  return (
+    JSON.stringify(withoutCollectionTimes(candidate)) ===
+    JSON.stringify(withoutCollectionTimes(previous))
+  );
+}
+
+function withoutCollectionTimes(record: JourneyRecord): JourneyRecord {
+  return {
+    ...record,
+    lastUpdated: "",
+    activity: {
+      ...record.activity,
+      collectedAt: ""
+    }
   };
 }
 
