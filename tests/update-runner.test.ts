@@ -59,6 +59,23 @@ describe("runUpdate", () => {
       ])
     );
     expect(svg).toContain("Middle-earth Journey");
+    expect(summary.artifactPaths).toHaveLength(5);
+    expect(summary.changedPaths).toHaveLength(5);
+  });
+
+  it("reports no changes when an identical run is repeated", async () => {
+    const fixture = await createRunFixture();
+    const options = {
+      ...fixture,
+      date: new Date("2026-07-09T12:00:00Z"),
+      activityProvider: async () => makeReport(activity, "2026-07-09T12:00:00.000Z")
+    };
+    await runUpdate(options);
+    const repeated = await runUpdate(options);
+
+    expect(repeated.changedPaths).toEqual([]);
+    expect(repeated.generatedEvents).toEqual([]);
+    expect(repeated.snapshot.dailyLog.snapshots).toHaveLength(1);
   });
 
   it("keeps awarded XP monotonic and events deduplicated", async () => {

@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { calculateAchievementResult } from "../achievement/achievement-engine.js";
 import { loadConfig } from "../config/config-loader.js";
@@ -44,8 +45,15 @@ export async function runUpdate(options: UpdateRunnerOptions = {}): Promise<Upda
       events: previous.events
     };
     const renderView = buildRenderViewModel(snapshot.state, theme, config.display);
-    await writeFilesTransaction([buildJourneySvgArtifact(renderView, svgPath)]);
-    return { config, snapshot, generatedEvents: [] };
+    const artifacts = [buildJourneySvgArtifact(renderView, svgPath)];
+    const changedPaths = await writeChangedArtifacts(artifacts);
+    return {
+      config,
+      snapshot,
+      generatedEvents: [],
+      artifactPaths: artifacts.map(({ path }) => path),
+      changedPaths
+    };
   }
 
   const activityProvider = options.activityProvider ?? defaultActivityProvider;
@@ -102,9 +110,42 @@ export async function runUpdate(options: UpdateRunnerOptions = {}): Promise<Upda
     ...buildStorageArtifacts(snapshot, dataDirectory),
     buildJourneySvgArtifact(renderView, svgPath)
   ];
-  await writeFilesTransaction(artifacts);
+  const changedPaths = await writeChangedArtifacts(artifacts);
 
-  return { config, snapshot, generatedEvents };
+  return {
+    config,
+    snapshot,
+    generatedEvents,
+    artifactPaths: artifacts.map(({ path }) => path),
+    changedPaths
+  };
+}
+
+async function writeChangedArtifacts(
+  artifacts: Array<{ path: string; content: string }>
+): Promise<string[]> {
+  const comparisons = await Promise.all(
+    artifacts.map(async (artifact) => {
+      try {
+        return (await readFile(artifact.path, "utf8")) === artifact.content ? undefined : artifact;
+      } catch (error) {
+        if (isFileNotFound(error)) return artifact;
+        throw error;
+      }
+    })
+  );
+  const changed = comparisons.filter((artifact) => artifact !== undefined);
+  if (changed.length > 0) await writeFilesTransaction(changed);
+  return changed.map(({ path }) => path);
+}
+
+function isFileNotFound(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code: unknown }).code === "ENOENT"
+  );
 }
 
 const defaultActivityProvider: ActivityProvider = async ({ githubUser, startDate, token, date }) =>

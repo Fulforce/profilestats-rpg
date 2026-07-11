@@ -1,0 +1,15 @@
+schemaVersion: 1
+profile:
+  githubUser: "octocat"
+theme:
+  id: "middle-earth"
+journey:
+  id: "consumer-action-fixture"
+  startDate: "2026-01-01"
+  targetXP: 50000
+  xpMultiplier: 1
+display:
+  layout: "standard"
+output:
+  svgPath: "output/journey.svg"
+  dataDirectory: "data"

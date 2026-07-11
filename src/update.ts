@@ -19,7 +19,9 @@ console.log(
       achievementCount: summary.snapshot.state.current.achievements.length,
       activityComplete: summary.snapshot.state.current.activity.complete,
       collectionWarnings: summary.snapshot.state.current.activity.warnings,
-      eventCount: summary.snapshot.events.events.length
+      eventCount: summary.snapshot.events.events.length,
+      changed: summary.changedPaths.length > 0,
+      changedPaths: summary.changedPaths
     },
     null,
     2

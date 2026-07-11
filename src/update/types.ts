@@ -25,4 +25,6 @@ export type UpdateSummary = {
   config: AppConfig;
   snapshot: StorageSnapshot;
   generatedEvents: JourneyEvent[];
+  artifactPaths: string[];
+  changedPaths: string[];
 };

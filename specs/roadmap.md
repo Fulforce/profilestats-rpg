@@ -61,13 +61,15 @@ Exit criteria: both layouts are readable, deterministic, safe, and visually regr
 
 ## Phase 4: Reusable Action
 
+Status: in progress. Packaging and behavior decisions are approved; implementation review must complete before the separately tracked immutable prerelease validation.
+
 - create `action.yml` and a reproducible JavaScript bundle;
 - separate generation from optional commit behavior;
 - implement documented inputs and outputs;
 - add a consumer profile-repository fixture;
 - keep the fork workflow using the same released engine path;
 - document manual first run, opt-in schedules, permissions, and branch-protection alternatives;
-- publish an immutable prerelease and test it in a separate repository.
+- publish an immutable prerelease and test it in a separate repository as an explicit post-review validation step.
 
 Exit criteria: a user can install the Action in an existing profile repository without forking or relying on maintainer-hosted infrastructure.
 

@@ -1,0 +1,34 @@
+name: Profile Stats RPG
+description: Generate an RPG journey card from public GitHub activity.
+author: Fulforce
+
+inputs:
+  github-token:
+    description: Token used for GitHub activity collection and optional pushes.
+    required: true
+  config-path:
+    description: Repository-relative path to the profile RPG configuration.
+    required: false
+    default: .github/profile-stats-rpg.yml
+  commit-changes:
+    description: Commit and push generated files when their content changes.
+    required: false
+    default: "false"
+  allow-abandon:
+    description: Explicitly archive an active journey before starting the configured journey.
+    required: false
+    default: "false"
+
+outputs:
+  changed:
+    description: Whether generated file content changed.
+  svg-path:
+    description: Repository-relative path to the generated SVG.
+  journey-status:
+    description: Current journey status, ACTIVE or COMPLETED.
+  progress-percent:
+    description: Current journey progress percentage.
+
+runs:
+  using: node24
+  main: dist/index.js
