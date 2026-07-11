@@ -1,6 +1,9 @@
 import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { parse } from "yaml";
 import { describe, expect, it } from "vitest";
+import { resolveActionRoot } from "../src/action/action-root.js";
 
 describe("reusable Action contract", () => {
   it("declares the documented JavaScript inputs and outputs", async () => {
@@ -31,5 +34,11 @@ describe("reusable Action contract", () => {
     expect(workflow).toContain("cancel-in-progress: false");
     expect(workflow).toContain("commit-changes: true");
     expect(workflow).toContain("uses: Fulforce/profilestats-rpg@v1.0.0-beta.1");
+  });
+
+  it("discovers bundled themes without relying on GITHUB_ACTION_PATH", () => {
+    const bundledModule = pathToFileURL(resolve("dist/index.js")).href;
+
+    expect(resolveActionRoot(bundledModule)).toBe(resolve("."));
   });
 });

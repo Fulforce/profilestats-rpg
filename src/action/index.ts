@@ -3,6 +3,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { isAbsolute, join, relative, resolve } from "node:path";
 import { runUpdate } from "../update/update-runner.js";
+import { resolveActionRoot } from "./action-root.js";
 
 const exec = promisify(execFile);
 
@@ -12,12 +13,10 @@ export async function runAction(): Promise<void> {
   const configPath = input("config-path") || ".github/profile-stats-rpg.yml";
   const commitChanges = booleanInput("commit-changes", false);
   const allowAbandon = booleanInput("allow-abandon", false);
-  const actionPath = process.env.GITHUB_ACTION_PATH;
   const workspace = process.env.GITHUB_WORKSPACE;
-  if (!actionPath)
-    throw new Error("GITHUB_ACTION_PATH is not available; run this as a GitHub Action.");
   if (!workspace)
     throw new Error("GITHUB_WORKSPACE is not available; checkout the consumer repository first.");
+  const actionPath = resolveActionRoot(import.meta.url, process.env.GITHUB_ACTION_PATH);
   assertRepositoryPath(configPath, workspace);
   process.chdir(workspace);
 
