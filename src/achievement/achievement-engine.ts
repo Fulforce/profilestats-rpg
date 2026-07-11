@@ -52,6 +52,7 @@ function isConditionSatisfied(
     case "reviewsSubmitted":
     case "repositoriesCreated":
     case "releasesPublished":
+    case "streaks":
       return context.activity[condition.type] >= Number(condition.value);
   }
 }

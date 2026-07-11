@@ -10,6 +10,7 @@ import type {
   ThemeValidationIssue
 } from "./types.js";
 import type { Title } from "../domain/types.js";
+import { validateThemeV1Files } from "./theme-v1-validator.js";
 
 const ID_PATTERN = /^[A-Z][A-Z0-9_]*$/;
 const SEMVER_PATTERN = /^\d+\.\d+\.\d+$/;
@@ -34,6 +35,13 @@ const CONDITION_TYPES = new Set<AchievementConditionType>([
 ]);
 
 export function validateThemeFiles(themeId: string, files: RawThemeFiles): ThemeValidationIssue[] {
+  if (
+    themeId !== "middle-earth" ||
+    (isRecord(files.manifest) && files.manifest.schemaVersion !== undefined)
+  ) {
+    return validateThemeV1Files(themeId, files);
+  }
+
   const issues: ThemeValidationIssue[] = [];
 
   validateManifest(themeId, files.manifest, issues);
@@ -65,15 +73,19 @@ export function normalizeThemeFiles(files: RawThemeFiles): ThemeData {
     throw new Error("Cannot normalize invalid theme files.");
   }
 
+  const versionOne = files.manifest.schemaVersion === 1;
   return {
     manifest: {
+      schemaVersion: versionOne ? 1 : undefined,
       id: String(files.manifest.id),
       name: String(files.manifest.name),
       version: String(files.manifest.version),
       author: String(files.manifest.author),
       description: String(files.manifest.description),
       defaultTargetXP: Number(files.manifest.defaultTargetXP),
-      startingTitle: String(files.manifest.startingTitle)
+      startingTitle: String(
+        versionOne ? files.manifest.startingTitleId : files.manifest.startingTitle
+      )
     },
     map: normalizeMap(files.map),
     titles: normalizeTitles(files.titles),
@@ -304,6 +316,7 @@ function normalizeMap(map: Record<string, unknown>): ThemeMap {
       name: String(location.name),
       requiredXP: Number(location.requiredXP),
       x: Number(location.x),
+      y: location.y === undefined ? undefined : Number(location.y),
       terrain: toOptionalString(location.terrain),
       description: toOptionalString(location.description),
       landmark: toOptionalBoolean(location.landmark)
@@ -328,13 +341,14 @@ function normalizeAchievements(achievements: unknown[]): AchievementDefinition[]
     const record = achievement as Record<string, unknown>;
     const condition = record.condition as Record<string, unknown>;
 
+    const versionOne = "metric" in condition;
     return {
       id: String(record.id),
       name: String(record.name),
       description: String(record.description),
       category: record.category as AchievementCategory,
       condition: {
-        type: condition.type as AchievementConditionType,
+        type: (versionOne ? condition.metric : condition.type) as AchievementConditionType,
         value: condition.value as string | number
       }
     };
@@ -342,10 +356,11 @@ function normalizeAchievements(achievements: unknown[]): AchievementDefinition[]
 }
 
 function normalizePalette(palette: Record<string, unknown>): ThemePalette {
+  const versionOne = "mutedText" in palette;
   return {
     background: String(palette.background),
-    primary: String(palette.primary),
-    secondary: String(palette.secondary),
+    primary: String(versionOne ? palette.routeComplete : palette.primary),
+    secondary: String(versionOne ? palette.mutedText : palette.secondary),
     accent: String(palette.accent),
     text: String(palette.text)
   };
