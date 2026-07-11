@@ -57,6 +57,7 @@ Decision record for Phase 4:
 - `dist/` is committed and CI must reject a bundle that differs from a clean rebuild;
 - both the supplied fork workflow and reusable installations invoke `action.yml` and therefore the same `runUpdate` engine;
 - the consumer checkout owns configuration, generated state, history, and SVG output, while bundled themes load from the installed Action release;
+- the JavaScript entrypoint locates bundled themes from its installed module path and does not depend on composite-Action-only environment variables;
 - `commit-changes` remains safely opt-in, although the recommended profile workflow enables it explicitly;
 - implementation review precedes publication; immutable prerelease validation is tracked as a separate release task.
 
