@@ -162,6 +162,8 @@ Collection timestamps are not meaningful state changes. When a same-day collecti
 
 Publishing is deliberately separated from implementation. After the implementation has passed review, an immutable prerelease is published and exercised from a separate consumer repository. Stable or moving tags are not created as part of the implementation review.
 
+Phase 4 release verification completed against immutable `v1.0.0-beta.3` in `Fulforce/profilestats-rpg-action-test`. Generation-only permissions, restricted generated-file commits, same-day idempotency, concurrency configuration, and protected-branch rejection were exercised successfully. Earlier beta tags remain immutable records of defects found and corrected during validation. No stable or moving Action tag was created by this validation step.
+
 CI for a release must:
 
 - build the Action bundle from a clean checkout;

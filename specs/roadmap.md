@@ -61,7 +61,7 @@ Exit criteria: both layouts are readable, deterministic, safe, and visually regr
 
 ## Phase 4: Reusable Action
 
-Status: in progress. Packaging and behavior decisions are approved; implementation review must complete before the separately tracked immutable prerelease validation.
+Status: complete. The reusable Action was implemented through one shared engine path and immutable `v1.0.0-beta.3` passed separate consumer-repository validation.
 
 - create `action.yml` and a reproducible JavaScript bundle;
 - separate generation from optional commit behavior;
