@@ -113,7 +113,7 @@ async function validateThemeDirectory(
   }
 
   const assetsRoot = join(themePath, "assets");
-  let assets: string[] = [];
+  let assets: string[];
   try {
     assets = await listAssetFiles(assetsRoot);
   } catch (error) {
