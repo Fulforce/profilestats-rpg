@@ -1,9 +1,10 @@
 {
+  "schemaVersion": 1,
   "id": "middle-earth",
   "name": "Middle-earth",
   "version": "1.0.0",
-  "author": "github-profilestats-rpg",
-  "description": "Journey from The Shire to Mount Doom through a developer adventure.",
+  "author": "Project contributors",
+  "description": "Unofficial fan journey from The Shire to Mount Doom.",
   "defaultTargetXP": 50000,
-  "startingTitle": "HOBBIT"
+  "startingTitleId": "hobbit"
 }

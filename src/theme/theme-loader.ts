@@ -27,9 +27,7 @@ export async function loadTheme(themeId: string, themesRoot = "themes"): Promise
 
   const loaded = await readThemeFiles(themePath);
   const issues = [...loaded.issues, ...validateThemeFiles(themeId, loaded.files)];
-  if (isV1Manifest(loaded.files.manifest)) {
-    issues.push(...(await validateV1ThemeDirectory(themePath, themeId)));
-  }
+  issues.push(...(await validateThemeDirectory(themePath, themeId)));
 
   if (issues.length > 0) {
     throw new ThemeValidationError(issues);
@@ -100,7 +98,7 @@ async function readThemeFiles(
   };
 }
 
-async function validateV1ThemeDirectory(
+async function validateThemeDirectory(
   themePath: string,
   themeId: string
 ): Promise<Array<{ path: string; message: string }>> {
@@ -173,15 +171,6 @@ async function listAssetFiles(directory: string): Promise<string[]> {
     else if (entry.isFile()) files.push(path);
   }
   return files;
-}
-
-function isV1Manifest(value: unknown): boolean {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "schemaVersion" in value &&
-    value.schemaVersion === 1
-  );
 }
 
 function safeFileError(error: unknown): string {

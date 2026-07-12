@@ -1,91 +1,100 @@
 [
   {
-    "id": "LEFT_SHIRE",
+    "id": "left-shire",
     "name": "There and Back Again",
     "description": "Begin the journey beyond The Shire.",
     "category": "JOURNEY",
     "condition": {
-      "type": "location",
-      "value": "BREE"
+      "metric": "location",
+      "operator": "reached",
+      "value": "bree"
     }
   },
   {
-    "id": "ENTERED_MORIA",
+    "id": "entered-moria",
     "name": "Into Darkness",
     "description": "Enter the Mines of Moria.",
     "category": "JOURNEY",
     "condition": {
-      "type": "location",
-      "value": "MORIA"
+      "metric": "location",
+      "operator": "reached",
+      "value": "moria"
     }
   },
   {
-    "id": "REACHED_MOUNT_DOOM",
+    "id": "reached-mount-doom",
     "name": "The Last Fire",
     "description": "Reach Mount Doom.",
     "category": "JOURNEY",
     "condition": {
-      "type": "location",
-      "value": "MOUNT_DOOM"
+      "metric": "location",
+      "operator": "reached",
+      "value": "mount-doom"
     }
   },
   {
-    "id": "XP_1000",
+    "id": "xp-1000",
     "name": "First Footsteps",
     "description": "Earn 1,000 XP.",
     "category": "XP",
     "condition": {
-      "type": "xp",
+      "metric": "xp",
+      "operator": "gte",
       "value": 1000
     }
   },
   {
-    "id": "XP_10000",
+    "id": "xp-10000",
     "name": "Road Hardened",
     "description": "Earn 10,000 XP.",
     "category": "XP",
     "condition": {
-      "type": "xp",
+      "metric": "xp",
+      "operator": "gte",
       "value": 10000
     }
   },
   {
-    "id": "XP_25000",
+    "id": "xp-25000",
     "name": "Half the World Away",
     "description": "Earn 25,000 XP.",
     "category": "XP",
     "condition": {
-      "type": "xp",
+      "metric": "xp",
+      "operator": "gte",
       "value": 25000
     }
   },
   {
-    "id": "FIRST_PR_MERGED",
+    "id": "first-pr-merged",
     "name": "First Victory",
     "description": "Merge your first pull request.",
     "category": "CONTRIBUTION",
     "condition": {
-      "type": "prsMerged",
+      "metric": "prsMerged",
+      "operator": "gte",
       "value": 1
     }
   },
   {
-    "id": "FIRST_RELEASE",
+    "id": "first-release",
     "name": "Signal Fire",
     "description": "Publish your first release.",
     "category": "CONTRIBUTION",
     "condition": {
-      "type": "releasesPublished",
+      "metric": "releasesPublished",
+      "operator": "gte",
       "value": 1
     }
   },
   {
-    "id": "HUNDRED_COMMITS",
+    "id": "hundred-commits",
     "name": "Well-Worn Boots",
     "description": "Make 100 commits.",
     "category": "CONTRIBUTION",
     "condition": {
-      "type": "commits",
+      "metric": "commits",
+      "operator": "gte",
       "value": 100
     }
   }

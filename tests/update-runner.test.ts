@@ -49,11 +49,11 @@ describe("runUpdate", () => {
           type: "JOURNEY_STARTED"
         }),
         expect.objectContaining({
-          id: "road-to-mordor-2026:LOCATION_UNLOCKED:SHIRE",
+          id: "road-to-mordor-2026:LOCATION_UNLOCKED:shire",
           type: "LOCATION_UNLOCKED"
         }),
         expect.objectContaining({
-          id: "road-to-mordor-2026:TITLE_UNLOCKED:WANDERER",
+          id: "road-to-mordor-2026:TITLE_UNLOCKED:wanderer",
           type: "TITLE_UNLOCKED"
         })
       ])

@@ -4,6 +4,8 @@ Turn public GitHub activity into a static RPG journey card for a profile README.
 
 The engine collects public activity, awards explainable XP, advances a character through a themed route, unlocks journey achievements, and writes versioned history plus a profile-ready SVG. The default bundled theme is `middle-earth`.
 
+The bundled Middle-earth theme is an unofficial fan work. It is not endorsed by, sponsored by, or affiliated with the Tolkien Estate, Middle-earth Enterprises, Embracer Group, Warner Bros., or any other rights holder.
+
 ## Install In An Existing Profile Repository
 
 Add `.github/profile-stats-rpg.yml` to your profile repository using the configuration below, then add `.github/workflows/update-profile-rpg.yml`:
@@ -71,6 +73,8 @@ output:
   svgPath: "output/journey.svg"
   dataDirectory: "data"
 ```
+
+`middle-earth` is the default bundled theme. Its licensing, provenance, and fan-work notice are documented in [themes/middle-earth/LICENSE.md](themes/middle-earth/LICENSE.md).
 
 3. Commit and push the configuration.
 4. Open **Actions** on GitHub and enable workflows if prompted.

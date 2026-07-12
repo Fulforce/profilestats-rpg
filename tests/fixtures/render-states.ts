@@ -14,20 +14,20 @@ const counts: Activity = {
 };
 
 const route = [
-  ["SHIRE", "The Shire", 0, 40],
-  ["BREE", "Bree", 2500, 120],
-  ["WEATHERTOP", "Weathertop", 5000, 205],
-  ["RIVENDELL", "Rivendell", 8500, 300],
-  ["MORIA", "Moria", 12500, 395],
-  ["LOTHLORIEN", "Lothlorien", 16500, 480],
-  ["AMON_HEN", "Amon Hen", 20500, 555],
-  ["EMYN_MUIL", "Emyn Muil", 24500, 635],
-  ["DEAD_MARSHES", "Dead Marshes", 28500, 715],
-  ["BLACK_GATE", "Black Gate", 33000, 790],
-  ["ITHILIEN", "Ithilien", 37000, 865],
-  ["CIRITH_UNGOL", "Cirith Ungol", 41000, 940],
-  ["SHELOBS_LAIR", "Shelob's Lair", 45500, 1015],
-  ["MOUNT_DOOM", "Mount Doom", 50000, 1100]
+  ["shire", "The Shire", 0, 40],
+  ["bree", "Bree", 2500, 120],
+  ["weathertop", "Weathertop", 5000, 205],
+  ["rivendell", "Rivendell", 8500, 300],
+  ["moria", "Moria", 12500, 395],
+  ["lothlorien", "Lothlorien", 16500, 480],
+  ["amon-hen", "Amon Hen", 20500, 555],
+  ["emyn-muil", "Emyn Muil", 24500, 635],
+  ["dead-marshes", "Dead Marshes", 28500, 715],
+  ["black-gate", "Black Gate", 33000, 790],
+  ["ithilien", "Ithilien", 37000, 865],
+  ["cirith-ungol", "Cirith Ungol", 41000, 940],
+  ["shelobs-lair", "Shelob's Lair", 45500, 1015],
+  ["mount-doom", "Mount Doom", 50000, 1100]
 ].map(([id, name, requiredXP, x]) => ({
   id: String(id),
   name: String(name),
@@ -51,8 +51,8 @@ const baseRecord: JourneyRecord = {
     xp: 16500,
     targetXP: 50000,
     progressPercent: 33,
-    currentLocationId: "LOTHLORIEN",
-    nextLocationId: "AMON_HEN",
+    currentLocationId: "lothlorien",
+    nextLocationId: "amon-hen",
     characterX: 480,
     segmentProgressPercent: 0,
     startedAt: "2026-01-01"
@@ -81,17 +81,17 @@ const baseRecord: JourneyRecord = {
     calculatedXP: 16500,
     awardedXP: 16500
   },
-  titleId: "ADVENTURER",
+  titleId: "adventurer",
   titleName: "Adventurer",
   achievements: [
     {
-      achievementId: "LEFT_SHIRE",
+      achievementId: "left-shire",
       name: "The Road Goes Ever On",
       description: "Leave the Shire.",
       unlockedAt: "2026-02-01T12:00:00.000Z"
     },
     {
-      achievementId: "FIRST_PR_MERGED",
+      achievementId: "first-pr-merged",
       name: "Fellowship Formed",
       description: "Merge a pull request.",
       unlockedAt: "2026-02-02T12:00:00.000Z"
@@ -116,8 +116,8 @@ export function zeroRenderState(): StateDocument {
       ...baseRecord.progress,
       xp: 0,
       progressPercent: 0,
-      currentLocationId: "SHIRE",
-      nextLocationId: "BREE",
+      currentLocationId: "shire",
+      nextLocationId: "bree",
       characterX: 40
     },
     activity: { ...baseRecord.activity, counts: zeroCounts },
@@ -139,8 +139,8 @@ export function earlyProgressRenderState(): StateDocument {
       ...baseRecord.progress,
       xp: 1296,
       progressPercent: 2.6,
-      currentLocationId: "SHIRE",
-      nextLocationId: "BREE",
+      currentLocationId: "shire",
+      nextLocationId: "bree",
       characterX: 81.4,
       segmentProgressPercent: 51.8
     },
@@ -161,7 +161,7 @@ export function completedRenderState(): StateDocument {
       status: "COMPLETED",
       xp: 50000,
       progressPercent: 100,
-      currentLocationId: "MOUNT_DOOM",
+      currentLocationId: "mount-doom",
       nextLocationId: undefined,
       characterX: 1100,
       completedAt: "2026-07-09T12:00:00.000Z"
@@ -193,7 +193,7 @@ export function longTextRenderState(): StateDocument {
       ...baseRecord,
       titleName: "Keeper of the Extremely Long and Unexpectedly Detailed Developer Chronicle",
       route: baseRecord.route.map((location) =>
-        location.id === "LOTHLORIEN"
+        location.id === "lothlorien"
           ? { ...location, name: "Lothlorien and the Very Long Woodland Realm" }
           : location
       )
