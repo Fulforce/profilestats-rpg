@@ -12,7 +12,7 @@ The repository includes `.github/workflows/update-journey.yml`. A fork owner con
 
 ### Reusable Action mode
 
-A user with an existing profile repository adds:
+A user with an existing profile repository creates the configuration file and a consumer workflow file. The workflow filename is chosen by the consumer; the documented example uses:
 
 ```text
 .github/profile-stats-rpg.yml
