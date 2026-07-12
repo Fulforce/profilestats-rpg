@@ -6,6 +6,10 @@ import { buildRenderViewModel } from "../src/svg/render-view-model.js";
 import { renderJourneySvg } from "../src/svg/svg-renderer.js";
 import { loadTheme } from "../src/theme/theme-loader.js";
 import {
+  buildBundledThemeActiveState,
+  discoverBundledThemeIds
+} from "../tests/helpers/bundled-themes.js";
+import {
   activeRenderState,
   completedRenderState,
   longTextRenderState,
@@ -25,6 +29,7 @@ const cases: Array<{
   { name: "compact-partial", state: partialRenderState, layout: "compact" },
   { name: "compact-long-text", state: longTextRenderState, layout: "compact" }
 ];
+const bundledThemeIds = discoverBundledThemeIds();
 
 for (const fixture of cases) {
   test(`${fixture.name} is bounded, nonblank, and visually stable`, async ({ page }) => {
@@ -35,6 +40,22 @@ for (const fixture of cases) {
     await expectMapLabelsDoNotOverlap(page);
     expectNonblank(await svg.screenshot());
   });
+}
+
+for (const themeId of bundledThemeIds) {
+  for (const layout of ["standard", "compact"] as const) {
+    test(`${themeId} ${layout} active theme contract is bounded, nonblank, and visually stable`, async ({
+      page
+    }) => {
+      const theme = await loadTheme(themeId);
+      await loadFixture(page, buildBundledThemeActiveState(theme), layout, 1, themeId);
+      const svg = page.locator("body > svg");
+      await expect(svg).toHaveScreenshot(`${themeId}-${layout}-active-theme-contract.png`);
+      await expectTextWithinBounds(page);
+      await expectMapLabelsDoNotOverlap(page);
+      expectNonblank(await svg.screenshot());
+    });
+  }
 }
 
 for (const layout of ["standard", "compact"] as const) {
@@ -51,9 +72,10 @@ async function loadFixture(
   page: Page,
   state: StateDocument,
   layout: DisplayConfig["layout"],
-  scale = 1
+  scale = 1,
+  themeId = "middle-earth"
 ): Promise<void> {
-  const theme = await loadTheme("middle-earth");
+  const theme = await loadTheme(themeId);
   const view = buildRenderViewModel(state, theme, {
     layout,
     showStats: true,
