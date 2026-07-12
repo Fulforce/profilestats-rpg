@@ -10,7 +10,7 @@ The bundled Middle-earth theme is an unofficial fan work. It is not endorsed by,
 
 ## Install In An Existing Profile Repository
 
-Add `.github/profile-stats-rpg.yml` to your profile repository using the configuration below, then add `.github/workflows/update-profile-rpg.yml`:
+Create `.github/profile-stats-rpg.yml` in your profile repository using the configuration below, then create a workflow file such as `.github/workflows/update-profile-rpg.yml` with this content:
 
 ```yaml
 name: Update Profile RPG
@@ -40,6 +40,8 @@ jobs:
 ```
 
 Run the workflow manually before enabling its schedule. The Action stores the generated SVG and journey JSON in your repository; this project operates no hosted database or service.
+
+`update-profile-rpg.yml` is an example consumer workflow name. It is created in your profile repository and is separate from this repository's fork workflow, [.github/workflows/update-journey.yml](.github/workflows/update-journey.yml).
 
 `commit-changes` defaults to `false`. The example opts in because a profile repository normally wants the generated files committed. With it disabled, `contents: read` is sufficient and the workflow can handle generated files itself. Protected branches should use generation-only mode and a separate pull-request workflow because the Action never bypasses branch protection.
 
