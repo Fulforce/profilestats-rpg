@@ -1,0 +1,22 @@
+[
+  {
+    "id": "newcomer",
+    "name": "Newcomer",
+    "requiredXP": 0
+  },
+  {
+    "id": "trailblazer",
+    "name": "Trailblazer",
+    "requiredXP": 10000
+  },
+  {
+    "id": "pathfinder",
+    "name": "Pathfinder",
+    "requiredXP": 25000
+  },
+  {
+    "id": "legend",
+    "name": "Legend",
+    "requiredXP": 50000
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "background": "#FFFFFF",
+  "surface": "#F4F6F8",
+  "primary": "#14532D",
+  "secondary": "#475569",
+  "accent": "#92400E",
+  "text": "#111827",
+  "mutedText": "#4B5563",
+  "route": "#64748B",
+  "routeComplete": "#14532D"
+}

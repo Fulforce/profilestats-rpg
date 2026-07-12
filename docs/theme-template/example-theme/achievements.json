@@ -1,0 +1,35 @@
+[
+  {
+    "id": "reach-crossroads",
+    "name": "First Turning",
+    "description": "Reach the Crossroads.",
+    "category": "JOURNEY",
+    "condition": {
+      "metric": "location",
+      "operator": "reached",
+      "value": "crossroads"
+    }
+  },
+  {
+    "id": "xp-10000",
+    "name": "Finding Pace",
+    "description": "Earn 10,000 XP.",
+    "category": "XP",
+    "condition": {
+      "metric": "xp",
+      "operator": "gte",
+      "value": 10000
+    }
+  },
+  {
+    "id": "first-pr-merged",
+    "name": "Merged Path",
+    "description": "Merge your first pull request.",
+    "category": "CONTRIBUTION",
+    "condition": {
+      "metric": "prsMerged",
+      "operator": "gte",
+      "value": 1
+    }
+  }
+]
