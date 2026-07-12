@@ -75,7 +75,7 @@ Exit criteria: a user can install the Action in an existing profile repository w
 
 ## Phase 5: Theme Contract And Community Release
 
-Status: in progress. The schema and validation contract is implemented, and the bundled Middle-earth theme migration is underway. Shared bundled-theme render tests and contributor templates remain separate focused issues.
+Status: in progress. The schema and validation contract, bundled Middle-earth theme migration, and shared bundled-theme contract/render harness are implemented. Contributor templates remain a separate focused issue.
 
 - upgrade bundled themes to schema version 1;
 - add licensing and provenance files;
