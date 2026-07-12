@@ -1,3 +1,5 @@
+![Profile stats RPG banner](./profilestats-rpg-social-image.png)
+
 # GitHub Profile Stats RPG
 
 Turn public GitHub activity into a static RPG journey card for a profile README.

@@ -89,7 +89,7 @@ Exit criteria: a contributor can add a bundled theme through one focused pull re
 
 ## Phase 6: Initial Stable Release
 
-Status: in progress. Release preparation is complete when the stable release PR is merged; the final tag publication and consumer verification happen from `main`.
+Status: complete.
 
 - remove prototype-only configuration and generated personal data;
 - verify fork and Action onboarding from empty repositories;
