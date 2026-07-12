@@ -16,7 +16,7 @@ import type {
   StorageUpdateInput
 } from "./types.js";
 
-const ENGINE_VERSION = "0.1.0";
+const ENGINE_VERSION = "1.0.0";
 const STATE_FILE = "state.json";
 const JOURNEYS_FILE = "journeys.json";
 const DAILY_LOG_FILE = "daily-log.json";

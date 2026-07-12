@@ -33,7 +33,7 @@ describe("reusable Action contract", () => {
     );
     expect(workflow).toContain("cancel-in-progress: false");
     expect(workflow).toContain("commit-changes: true");
-    expect(workflow).toContain("uses: Fulforce/profilestats-rpg@v1.0.0-beta.1");
+    expect(workflow).toContain("uses: Fulforce/profilestats-rpg@v1");
   });
 
   it("discovers bundled themes without relying on GITHUB_ACTION_PATH", () => {

@@ -4,9 +4,19 @@ Thanks for helping improve GitHub Profile Stats RPG. Keep changes focused, updat
 
 ## Development Setup
 
+The recommended setup is the repository dev container. Open the repo in VS Code Dev Containers or GitHub Codespaces; the container uses the supported Node runtime, installs npm dependencies, installs GitHub CLI, and downloads the Chromium browser used by Playwright.
+
+If you are working directly on your machine:
+
 ```bash
 npm ci
 npm run check
+```
+
+Install Chromium before running visual checks locally:
+
+```bash
+npx playwright install --with-deps chromium
 ```
 
 Use `npm start` for a local smoke test that does not write generated files.

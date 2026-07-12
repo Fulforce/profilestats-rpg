@@ -1,6 +1,6 @@
 {
   "name": "github-profilestats-rpg",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "An RPG-style GitHub profile stats journey generator.",
   "type": "module",
   "private": true,

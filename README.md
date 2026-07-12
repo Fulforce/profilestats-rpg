@@ -104,6 +104,8 @@ The JavaScript Action accepts `github-token`, `config-path`, `commit-changes`, a
 
 The checked-in `dist/` bundle is the executable release artifact. Contributors rebuild it with `npm run build:action`; CI verifies that it matches the TypeScript Action source.
 
+Stable releases use immutable version tags such as `v1.0.0` and a moving compatible major tag, `v1`. See the [release guide](docs/release.md) for publication and rollback details.
+
 ## Journey Lifecycle
 
 `journey.id` permanently identifies one campaign. Its profile, theme, start date, target XP, and multiplier become locked after the first successful run.
@@ -149,6 +151,10 @@ The JSON and SVG files are written as one transaction. A failed collection, calc
 
 ## Local Development
 
+The quickest contributor setup is the included dev container. Open the repository in VS Code with Dev Containers or GitHub Codespaces and the container will install npm dependencies plus the Chromium browser used by Playwright visual checks.
+
+For local machine setup:
+
 ```bash
 npm ci
 npx playwright install --with-deps chromium
@@ -166,6 +172,8 @@ GITHUB_TOKEN=YOUR_TOKEN npm run update
 
 The generated SVG contains no JavaScript, remote assets, custom fonts, or browser runtime dependency. Bundled character artwork is parsed, sanitized, namespaced, and inlined into the static output.
 
+If setup or local checks fail, see [Troubleshooting](docs/troubleshooting.md).
+
 ## Themes
 
 Bundled themes live under `themes/` and contain route, title, achievement, palette, and asset data. The engine remains theme-agnostic; new theme content should not be hardcoded into core modules.
@@ -181,4 +189,4 @@ Version 1 supports bundled themes only. Remote Git themes, npm theme packages, r
 
 Theme contributors can start from the copyable template and checklist in [Theme Contributions](docs/theme-contributions.md).
 
-See the [specification index](specs/README.md), [renderer guide](docs/renderer.md), [architecture](docs/architecture.md), and [contribution guide](CONTRIBUTING.md) for more detail.
+See the [specification index](specs/README.md), [renderer guide](docs/renderer.md), [architecture](docs/architecture.md), [release guide](docs/release.md), [troubleshooting](docs/troubleshooting.md), and [contribution guide](CONTRIBUTING.md) for more detail.
