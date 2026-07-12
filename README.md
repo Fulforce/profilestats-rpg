@@ -151,6 +151,10 @@ The JSON and SVG files are written as one transaction. A failed collection, calc
 
 ## Local Development
 
+The quickest contributor setup is the included dev container. Open the repository in VS Code with Dev Containers or GitHub Codespaces and the container will install npm dependencies plus the Chromium browser used by Playwright visual checks.
+
+For local machine setup:
+
 ```bash
 npm ci
 npx playwright install --with-deps chromium

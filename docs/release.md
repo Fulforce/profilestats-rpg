@@ -14,7 +14,8 @@ Before publishing a stable release:
 6. Confirm the README setup examples use the intended release tag.
 7. Confirm generated personal data is not committed under `data/` or `output/`.
 8. Confirm `.github/profile-stats-rpg.yml` contains the safe `octocat` example profile.
-9. Confirm the previous working prerelease remains available.
+9. Confirm GitHub Dependency graph is enabled so the Dependency Review workflow can run.
+10. Confirm the previous working prerelease remains available.
 
 ## Publishing `v1.0.0`
 
