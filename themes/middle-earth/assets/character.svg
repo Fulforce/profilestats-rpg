@@ -1,12 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 100">
   <defs>
     <linearGradient id="cloak" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#2F6F4E"/>
-      <stop offset="1" stop-color="#204C36"/>
+      <stop offset="0" stop-color="#3A7A55"/>
+      <stop offset="1" stop-color="#1F4A35"/>
+    </linearGradient>
+    <linearGradient id="waistcoat" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#B8893C"/>
+      <stop offset="1" stop-color="#7A4F22"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E0A65A"/>
+      <stop offset="1" stop-color="#B87333"/>
     </linearGradient>
   </defs>
-  <circle cx="40" cy="27" r="13" fill="#C88A2D" stroke="#242018" stroke-width="3"/>
-  <path d="M18 88 Q21 48 40 43 Q59 48 62 88 Z" fill="url(#cloak)" stroke="#242018" stroke-width="3" stroke-linejoin="round"/>
-  <path d="M13 27 Q40 2 67 27 Q40 20 13 27 Z" fill="#6B5B45" stroke="#242018" stroke-width="3" stroke-linejoin="round"/>
-  <path d="M40 90 L31 99 L49 99 Z" fill="#C88A2D"/>
+  <path d="M13 28 Q40 5 67 28 Q54 23 40 23 Q26 23 13 28 Z" fill="#6B5B45" stroke="#242018" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M19 34 Q17 26 24 23 Q22 31 19 34 Z" fill="url(#skin)" stroke="#242018" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M61 34 Q63 26 56 23 Q58 31 61 34 Z" fill="url(#skin)" stroke="#242018" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="40" cy="29" r="13" fill="url(#skin)" stroke="#242018" stroke-width="3"/>
+  <path d="M27 24 Q30 13 40 15 Q51 15 54 24 Q47 20 40 22 Q33 20 27 24 Z" fill="#4A2B18" stroke="#242018" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="35" cy="30" r="1.8" fill="#242018"/>
+  <circle cx="45" cy="30" r="1.8" fill="#242018"/>
+  <path d="M35 38 Q40 42 45 38" fill="none" stroke="#242018" stroke-width="2" stroke-linecap="round"/>
+  <path d="M19 88 Q21 52 31 43 Q36 49 40 49 Q44 49 49 43 Q59 52 61 88 Z" fill="url(#cloak)" stroke="#242018" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M31 44 Q40 53 49 44 L53 84 Q46 91 40 90 Q34 91 27 84 Z" fill="url(#waistcoat)" stroke="#242018" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M40 51 L40 86" stroke="#242018" stroke-width="2" stroke-linecap="round"/>
+  <path d="M24 58 Q13 65 18 79" fill="none" stroke="#242018" stroke-width="4" stroke-linecap="round"/>
+  <path d="M56 58 Q65 60 63 74" fill="none" stroke="#242018" stroke-width="4" stroke-linecap="round"/>
+  <line x1="65" y1="35" x2="65" y2="96" stroke="#5B3A1D" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="65" cy="34" r="3" fill="#8D612C" stroke="#242018" stroke-width="2"/>
+  <path d="M29 88 Q36 91 38 98 Q29 101 22 96 Q23 91 29 88 Z" fill="url(#skin)" stroke="#242018" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M51 88 Q44 91 42 98 Q51 101 58 96 Q57 91 51 88 Z" fill="url(#skin)" stroke="#242018" stroke-width="3" stroke-linejoin="round"/>
 </svg>
