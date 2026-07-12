@@ -170,4 +170,15 @@ The generated SVG contains no JavaScript, remote assets, custom fonts, or browse
 
 Bundled themes live under `themes/` and contain route, title, achievement, palette, and asset data. The engine remains theme-agnostic; new theme content should not be hardcoded into core modules.
 
+Select a bundled theme by setting `theme.id` in `.github/profile-stats-rpg.yml`. This works the same way in fork mode and reusable Action mode:
+
+```yaml
+theme:
+  id: "middle-earth"
+```
+
+Version 1 supports bundled themes only. Remote Git themes, npm theme packages, registries, hosted previews, and network execution are not supported.
+
+Theme contributors can start from the copyable template and checklist in [Theme Contributions](docs/theme-contributions.md).
+
 See the [specification index](specs/README.md), [renderer guide](docs/renderer.md), [architecture](docs/architecture.md), and [contribution guide](CONTRIBUTING.md) for more detail.

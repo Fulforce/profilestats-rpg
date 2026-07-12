@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "example-theme",
+  "name": "Example Theme",
+  "version": "1.0.0",
+  "author": "Your name",
+  "description": "A short journey description.",
+  "defaultTargetXP": 50000,
+  "startingTitleId": "newcomer"
+}
