@@ -9,18 +9,20 @@ describe("loadTheme", () => {
     const theme = await loadTheme("middle-earth");
 
     expect(theme.manifest.id).toBe("middle-earth");
-    expect(theme.manifest.startingTitle).toBe("HOBBIT");
+    expect(theme.manifest.schemaVersion).toBe(1);
+    expect(theme.manifest.startingTitle).toBe("hobbit");
     expect(theme.map.locations).toHaveLength(14);
     expect(theme.map.locations[0]).toMatchObject({
-      id: "SHIRE",
-      requiredXP: 0
+      id: "shire",
+      requiredXP: 0,
+      y: 180
     });
     expect(theme.map.locations.at(-1)).toMatchObject({
-      id: "MOUNT_DOOM",
+      id: "mount-doom",
       requiredXP: 50000
     });
-    expect(theme.titles.map((title) => title.id)).toContain("LEGEND_OF_MIDDLE_EARTH");
-    expect(theme.achievements.map((achievement) => achievement.id)).toContain("FIRST_PR_MERGED");
+    expect(theme.titles.map((title) => title.id)).toContain("legend-of-middle-earth");
+    expect(theme.achievements.map((achievement) => achievement.id)).toContain("first-pr-merged");
     expect(theme.palette.background).toBe("#F7F0D8");
     expect(theme.assets.character.viewBox).toBe("0 0 80 100");
     expect(theme.assets.character.content).toContain("psrpg-middle-earth-character-cloak");
@@ -95,6 +97,27 @@ describe("loadTheme", () => {
         expect.objectContaining({ path: "palette.json" }),
         expect.objectContaining({ path: "LICENSE.md" }),
         expect.objectContaining({ path: "assets" })
+      ])
+    });
+  });
+
+  it("requires license and safe local assets even when the manifest is not v1", async () => {
+    const root = await createV1ThemeFixture({ license: false });
+    const theme = join(root, "test-theme");
+    await writeJson(join(theme, "theme.json"), {
+      id: "test-theme",
+      name: "Legacy",
+      version: "1.0.0",
+      author: "Theme Author",
+      description: "Legacy fixture.",
+      defaultTargetXP: 1000,
+      startingTitle: "NEWCOMER"
+    });
+
+    await expect(loadTheme("test-theme", root)).rejects.toMatchObject({
+      issues: expect.arrayContaining([
+        expect.objectContaining({ path: "theme.json.schemaVersion" }),
+        expect.objectContaining({ path: "LICENSE.md" })
       ])
     });
   });

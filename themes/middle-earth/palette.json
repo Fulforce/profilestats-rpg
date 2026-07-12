@@ -1,7 +1,11 @@
 {
   "background": "#F7F0D8",
+  "surface": "#F0E7CC",
   "primary": "#2F6F4E",
   "secondary": "#6B5B45",
   "accent": "#C88A2D",
-  "text": "#242018"
+  "text": "#242018",
+  "mutedText": "#6B5B45",
+  "route": "#6B5B45",
+  "routeComplete": "#2F6F4E"
 }

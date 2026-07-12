@@ -4,45 +4,6 @@ import type { RawThemeFiles } from "../src/theme/types.js";
 
 const validFiles: RawThemeFiles = {
   manifest: {
-    id: "middle-earth",
-    name: "Middle-earth",
-    version: "1.0.0",
-    author: "Theme Author",
-    description: "Journey from The Shire to Mount Doom.",
-    defaultTargetXP: 50000,
-    startingTitle: "HOBBIT"
-  },
-  map: {
-    targetXP: 50000,
-    locations: [
-      { id: "SHIRE", name: "The Shire", requiredXP: 0, x: 0 },
-      { id: "MORIA", name: "Moria", requiredXP: 10000, x: 500 }
-    ]
-  },
-  titles: [
-    { id: "HOBBIT", name: "Hobbit", requiredXP: 0 },
-    { id: "RANGER", name: "Ranger", requiredXP: 5000 }
-  ],
-  achievements: [
-    {
-      id: "ENTERED_MORIA",
-      name: "Into Darkness",
-      description: "Enter the Mines of Moria.",
-      category: "JOURNEY",
-      condition: { type: "location", value: "MORIA" }
-    }
-  ],
-  palette: {
-    background: "#FDF6E3",
-    primary: "#2E7D32",
-    secondary: "#8D6E63",
-    accent: "#FFB300",
-    text: "#222222"
-  }
-};
-
-const validV1Files: RawThemeFiles = {
-  manifest: {
     schemaVersion: 1,
     id: "test-theme",
     name: "Test Theme",
@@ -93,65 +54,61 @@ const validV1Files: RawThemeFiles = {
 };
 
 describe("validateThemeFiles", () => {
-  it("accepts a valid theme payload", () => {
-    expect(validateThemeFiles("middle-earth", validFiles)).toEqual([]);
+  it("accepts the complete schema-version-1 contract", () => {
+    expect(validateThemeFiles("test-theme", validFiles)).toEqual([]);
   });
 
   it("rejects cross-file references that do not resolve", () => {
-    const issues = validateThemeFiles("middle-earth", {
+    const issues = validateThemeFiles("test-theme", {
       ...validFiles,
       manifest: {
-        ...(validFiles.manifest as object),
-        startingTitle: "WIZARD"
+        ...(validFiles.manifest as Record<string, unknown>),
+        startingTitleId: "wizard"
       },
       achievements: [
         {
-          id: "LOST",
+          id: "lost",
           name: "Lost",
           description: "Reference an unknown location.",
           category: "JOURNEY",
-          condition: { type: "location", value: "UNKNOWN" }
+          condition: { metric: "location", operator: "reached", value: "unknown" }
         }
       ]
     });
 
     expect(issues.map((issue) => issue.path)).toEqual([
       "achievements.json[0].condition.value",
-      "theme.json.startingTitle"
+      "theme.json.startingTitleId"
     ]);
   });
 
   it("rejects unsorted locations and duplicate titles", () => {
-    const issues = validateThemeFiles("middle-earth", {
+    const issues = validateThemeFiles("test-theme", {
       ...validFiles,
       map: {
-        targetXP: 50000,
+        targetXP: 1000,
         locations: [
-          { id: "MORIA", name: "Moria", requiredXP: 10000, x: 500 },
-          { id: "SHIRE", name: "The Shire", requiredXP: 0, x: 0 }
+          { id: "start", name: "Start", requiredXP: 0, x: 0, y: 180 },
+          { id: "finish", name: "Finish", requiredXP: 1000, x: 1200, y: 180 },
+          { id: "middle", name: "Middle", requiredXP: 500, x: 600, y: 180 }
         ]
       },
       titles: [
-        { id: "HOBBIT", name: "Hobbit", requiredXP: 0 },
-        { id: "HOBBIT", name: "Hobbit Again", requiredXP: 1000 }
+        { id: "newcomer", name: "Newcomer", requiredXP: 0 },
+        { id: "newcomer", name: "Again", requiredXP: 1000 }
       ]
     });
 
-    expect(issues.map((issue) => issue.path)).toEqual([
-      "map.json.locations[1].requiredXP",
-      "titles.json[1].id"
-    ]);
-  });
-
-  it("accepts the complete schema-version-1 contract", () => {
-    expect(validateThemeFiles("test-theme", validV1Files)).toEqual([]);
+    expect(issues.map((issue) => issue.path)).toEqual(
+      expect.arrayContaining(["map.json.locations[2].requiredXP", "titles.json[1].id"])
+    );
   });
 
   it("accumulates schema, reference, boundary, operator, and contrast issues", () => {
     const issues = validateThemeFiles("test-theme", {
-      ...validV1Files,
+      ...validFiles,
       manifest: {
-        ...(validV1Files.manifest as Record<string, unknown>),
+        ...(validFiles.manifest as Record<string, unknown>),
         unexpected: true,
         startingTitleId: "missing-title",
         defaultTargetXP: 2000
@@ -177,7 +134,7 @@ describe("validateThemeFiles", () => {
         }
       ],
       palette: {
-        ...(validV1Files.palette as Record<string, unknown>),
+        ...(validFiles.palette as Record<string, unknown>),
         text: "#FFFFFF",
         mutedText: "#EEEEEE"
       }
@@ -207,10 +164,25 @@ describe("validateThemeFiles", () => {
     expect(issues.length).toBeGreaterThan(16);
   });
 
-  it("requires schema version 1 for themes other than the migration exception", () => {
-    expect(validateThemeFiles("new-theme", validFiles)).toEqual(
+  it("requires schema version 1 for every theme", () => {
+    expect(
+      validateThemeFiles("middle-earth", {
+        ...validFiles,
+        manifest: {
+          id: "middle-earth",
+          name: "Middle-earth",
+          version: "1.0.0",
+          author: "Theme Author",
+          description: "Legacy fixture.",
+          defaultTargetXP: 50000,
+          startingTitle: "HOBBIT"
+        }
+      })
+    ).toEqual(
       expect.arrayContaining([
-        { path: "theme.json.schemaVersion", message: "must be the integer 1" }
+        { path: "theme.json.schemaVersion", message: "must be the integer 1" },
+        { path: "theme.json.startingTitle", message: "is not supported" },
+        { path: "theme.json.startingTitleId", message: "must be a lowercase kebab-case identifier" }
       ])
     );
   });
