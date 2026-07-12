@@ -65,3 +65,11 @@ output/journey.svg
 ```
 
 These artifacts are ignored in the host repository and force-added by the fork workflow after a successful update.
+
+## Release Boundary
+
+The checked-in `dist/` directory is the executable GitHub Action artifact. CI rebuilds it from TypeScript and fails if the generated bundle differs from the committed bundle.
+
+Stable releases publish an immutable version tag such as `v1.0.0`. The moving `v1` tag points at the latest compatible stable release only after release verification passes. Consumers that need reproducibility can pin an immutable tag or full commit SHA.
+
+The previous verified prerelease, `v1.0.0-beta.3`, remains available as the rollback reference for the initial stable release.

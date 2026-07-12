@@ -84,7 +84,7 @@ export function buildBundledThemeActiveState(theme: Theme): StateDocument {
 
   return {
     schemaVersion: 1,
-    engineVersion: "0.1.0",
+    engineVersion: "1.0.0",
     profile: { githubUser: "octocat" },
     current: record
   };
