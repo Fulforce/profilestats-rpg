@@ -10,7 +10,35 @@ The bundled Middle-earth theme is an unofficial fan work. It is not endorsed by,
 
 ## Install In An Existing Profile Repository
 
-Create `.github/profile-stats-rpg.yml` in your profile repository using the configuration below, then create a workflow file such as `.github/workflows/update-profile-rpg.yml` with this content:
+Create `.github/profile-stats-rpg.yml` in your profile repository:
+
+```yaml
+schemaVersion: 1
+
+profile:
+  githubUser: "YOUR_GITHUB_USERNAME"
+
+theme:
+  id: "middle-earth"
+
+journey:
+  id: "road-to-mordor-2026"
+  startDate: "2026-01-01"
+  targetXP: 50000
+  xpMultiplier: 1.0
+
+display:
+  layout: "standard"
+  showStats: true
+  showTitle: true
+  showAchievements: true
+
+output:
+  svgPath: "output/journey.svg"
+  dataDirectory: "data"
+```
+
+Then create a workflow file such as `.github/workflows/update-profile-rpg.yml`:
 
 ```yaml
 name: Update Profile RPG
