@@ -8,7 +8,7 @@ It does not calculate XP, progression, titles, achievements, or rendering state.
 
 ## Scope And Privacy
 
-The target product collects public activity for one GitHub user. Private contribution access, organization-wide analysis, repository content, source code, and raw API response persistence are outside scope.
+The product collects public activity for one GitHub user. Private contribution access, organization-wide analysis, repository content, source code, and raw API response persistence are outside scope.
 
 Authentication uses the workflow-provided `GITHUB_TOKEN` or an equivalent local token. Tokens are read from the environment or Action input, never configuration, logs, generated files, or errors.
 

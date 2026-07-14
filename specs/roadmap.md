@@ -1,8 +1,8 @@
-# MVP To Target-State Roadmap
+# Initial Release Delivery Record
 
 ## Purpose
 
-This roadmap sequences the unpublished MVP prototype into the first public release described by the specifications. It is guidance, not a promise of dates. The prototype has no external consumers, so its configuration and generated data formats may be replaced directly without compatibility work.
+This document records the completed path from the original unpublished prototype to the `v1.0.0` public contract. It is historical context, not an active delivery plan or promise of dates. New work must preserve the published compatibility guarantees unless it is released through an explicit breaking-change process.
 
 ## Phase 0: Specification Baseline
 
@@ -113,6 +113,6 @@ These require a separate future decision and are not prerequisites for productio
 - hosted configuration or preview UI;
 - theme registry, telemetry, accounts, or databases.
 
-## Recommended Issue Order
+## Future Planning
 
-Create milestones matching phases 1 through 6. Within each milestone, implement contracts before visual enhancements. Label issues with `engine`, `api`, `storage`, `renderer`, `action`, `theme`, `docs`, and `breaking-change` so scope remains visible.
+Track future work in versioned milestones rather than reopening the completed phases above. Implement contract changes before dependent visual enhancements, and label issues with `engine`, `api`, `storage`, `renderer`, `action`, `theme`, `docs`, and `breaking-change` so scope remains visible.

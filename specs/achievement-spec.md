@@ -4,7 +4,7 @@
 
 Achievements recognize milestones reached during one journey. Definitions belong to themes; evaluation belongs to the engine.
 
-Account-wide achievements, cross-journey unlock rules, random achievements, and external plugins are outside the target scope.
+Account-wide achievements, cross-journey unlock rules, random achievements, and external plugins are outside the version-1 scope.
 
 ## Definition
 

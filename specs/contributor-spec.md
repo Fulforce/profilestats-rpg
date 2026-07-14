@@ -31,7 +31,7 @@ Theme-specific names or behavior must not be hardcoded in engine modules. A new 
 src/                 engine source
 tests/               automated tests and fixtures
 themes/              bundled themes
-specs/               normative target behavior
+specs/               normative versioned behavior
 docs/                explanatory guides and architecture
 .github/              CI, automation, and contribution templates
 action.yml            public Action contract
@@ -59,8 +59,8 @@ Specifications are normative. If implementation and specification disagree, the 
 Behavioral pull requests identify:
 
 - the affected contract;
-- compatibility impact;
 - compatibility impact when persisted data changes;
+- compatibility impact for existing configuration and Action consumers;
 - user-visible output changes;
 - tests demonstrating acceptance criteria.
 

@@ -6,7 +6,7 @@ The XP engine converts a normalized activity report into an explainable XP break
 
 ## Versioned Rule Set
 
-XP values belong to a named semantic version. The initial target rule set is:
+XP values belong to a named semantic version. The version-1 rule set is:
 
 ```ts
 const XP_RULE_SET = {
@@ -23,7 +23,7 @@ const XP_RULE_SET = {
 } as const;
 ```
 
-Exact balancing may change before the first public release. After release, changing any value requires a new rule-set version.
+Changing any released value requires a new rule-set version. Existing journeys retain the version stored when they began.
 
 ## Calculation
 

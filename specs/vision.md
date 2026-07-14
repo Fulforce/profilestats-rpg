@@ -6,7 +6,7 @@ GitHub Profile Stats RPG turns an individual's public GitHub activity into a the
 
 The project is a fun, community-reusable open-source tool. It is not a hosted service and must not require infrastructure, accounts, databases, subscriptions, or ongoing costs for the maintainer.
 
-The existing MVP is an unpublished prototype used only by the maintainer. The target contracts in these specifications define the first public release and do not preserve prototype configuration or storage formats.
+The version-1 contracts in these specifications define the supported public behavior. Later releases evolve those contracts through explicit versioning and compatibility decisions.
 
 Middle-earth is the default bundled theme. Additional themes may be contributed through pull requests and selected through configuration.
 
@@ -40,7 +40,7 @@ Public GitHub activity
 3. **Action-friendly:** users may install a released GitHub Action in an existing profile repository.
 4. **Deterministic:** equal versioned inputs produce equal progression results.
 5. **Campaign-based:** a journey has a stable identity, completes once, and is retained in history.
-6. **Public by default:** only public GitHub activity is collected; private activity is outside the target scope.
+6. **Public by default:** only public GitHub activity is collected; private activity is outside the supported scope.
 7. **Theme-driven:** story, route, titles, achievements, palette, and visual assets belong to themes.
 8. **Static output:** generated SVGs need no scripts, external fonts, remote assets, or runtime service.
 9. **Honest data:** incomplete or capped GitHub results are identified, not silently presented as exact.
@@ -48,7 +48,7 @@ Public GitHub activity
 
 ## Supported Users
 
-The target user is an individual GitHub user creating a card for their own profile. Organization dashboards, team competitions, social accounts, hosted editing, and multi-tenant services are non-goals.
+The primary user is an individual GitHub user creating a card for their own profile. Organization dashboards, team competitions, social accounts, hosted editing, and multi-tenant services are non-goals.
 
 ## Installation Modes
 
@@ -62,7 +62,7 @@ The user adds `.github/profile-stats-rpg.yml` and a small workflow to an existin
 
 Both modes use the same engine, schemas, themes, and renderer.
 
-## Target-State Success Criteria
+## Success Criteria
 
 The product is successful when:
 

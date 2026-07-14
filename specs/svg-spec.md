@@ -6,14 +6,14 @@ The renderer turns validated stored state and a validated theme into static, pro
 
 ## Outputs
 
-The first public release supports two layouts:
+Version 1 supports two layouts:
 
 | Layout     | Default size | Purpose                                                                                      |
 | ---------- | -----------: | -------------------------------------------------------------------------------------------- |
 | `standard` |   1200 x 420 | Full journey map, XP sources, progression, title, and achievement summary.                   |
 | `compact`  |    495 x 195 | Dense profile stat card with current location and progress; detailed map labels are omitted. |
 
-The configured layout writes to `output.svgPath`. Future support may generate both in one run, but the first public release requires exactly one selected layout.
+The configured layout writes to `output.svgPath`. Generating both layouts in one run remains deferred; version 1 requires exactly one selected layout.
 
 The root SVG includes `viewBox`, explicit width and height, `role="img"`, a unique `<title>`, and a concise `<desc>`.
 

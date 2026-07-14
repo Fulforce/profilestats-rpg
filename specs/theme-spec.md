@@ -8,7 +8,7 @@ The engine must not contain theme-specific location names, character names, titl
 
 ## Distribution Scope
 
-The first public release supports bundled themes only:
+Version 1 supports bundled themes only:
 
 ```text
 themes/<theme-id>/
@@ -16,7 +16,7 @@ themes/<theme-id>/
 
 “Bundled” means the directory is part of a released version of this repository and is selected using `theme.id`. Fork users and reusable-Action users receive the same released themes.
 
-Installing themes directly from another Git repository is a possible future extension. The first public release does not implement remote theme loading, npm theme packages, a registry, or network execution of theme code.
+Installing themes directly from another Git repository is a possible future extension. Version 1 does not implement remote theme loading, npm theme packages, a registry, or network execution of theme code.
 
 ## Directory Contract
 
@@ -34,7 +34,7 @@ themes/<theme-id>/
     └── backgrounds/
 ```
 
-Only `character.svg` is a required visual asset in the first public release. Other asset folders are optional. Asset references must stay inside the theme directory.
+Only `character.svg` is a required visual asset in version 1. Other asset folders are optional. Asset references must stay inside the theme directory.
 
 ## Manifest
 
@@ -112,7 +112,7 @@ Theme assets may use static SVG elements and paths. They must not contain:
 - unsafe XML declarations or entities;
 - IDs that can collide when inlined without namespacing.
 
-The loader parses and sanitizes assets before rendering. Files have a documented size limit; the first public release defaults to 100 KB per asset and 500 KB per theme.
+The loader parses and sanitizes assets before rendering. Version 1 limits each asset to 100 KB and each theme to 500 KB.
 
 ## Licensing And Attribution
 
