@@ -26,17 +26,22 @@ name: Update Profile RPG
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "17 5 * * *"
+  # Enable only after a successful manual run.
+  # schedule:
+  #   - cron: "17 5 * * *"
 
 permissions:
   contents: write
+
+concurrency:
+  group: profile-stats-rpg-${{ github.repository }}
+  cancel-in-progress: false
 
 jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: Fulforce/profilestats-rpg@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

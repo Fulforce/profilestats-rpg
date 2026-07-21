@@ -4,7 +4,7 @@
 
 Turn public GitHub activity into a static RPG journey card for a profile README.
 
-The engine collects public activity, awards explainable XP, advances a character through a themed route, unlocks journey achievements, and writes versioned history plus a profile-ready SVG. The default bundled theme is `middle-earth`.
+Profile Stats RPG is a self-contained generation engine: it collects public activity, awards explainable XP, advances a character through a themed route, unlocks journey achievements, and writes both versioned history and a profile-ready SVG. The default bundled theme is `middle-earth`, but the engine is intentionally theme-agnostic so new routes, titles, achievements, palettes, and artwork can be added without rewriting the core logic.
 
 The bundled Middle-earth theme is an unofficial fan work. It is not endorsed by, sponsored by, or affiliated with the Tolkien Estate, Middle-earth Enterprises, Embracer Group, Warner Bros., or any other rights holder.
 
@@ -12,11 +12,11 @@ The bundled Middle-earth theme is an unofficial fan work. It is not endorsed by,
 
 Profile Stats RPG runs as a deterministic pipeline inside your GitHub repository—there is no hosted service, database, or account to maintain.
 
-1. **Collect public activity.** The engine combines GitHub's contribution calendar, issue and pull-request search, and repository API to count commits, reviews, pull requests, issues, repositories, and seven-day streaks from the journey start date. If GitHub cannot provide an exact metric, the result carries an explicit completeness warning instead of inventing a number.
+1. **Collect public activity.** The collector combines GitHub's contribution calendar, issue and pull-request search, and repository API to count commits, reviews, pull requests, issues, repositories, releases, and seven-day streaks from the journey start date. If GitHub cannot provide an exact metric, the result carries an explicit completeness warning instead of inventing a number.
 2. **Turn activity into explainable XP.** Each metric uses a versioned rule set and produces a source row containing its count, unit value, and earned XP. A configurable multiplier controls pacing, while awarded XP remains monotonic if GitHub later reports a lower total.
-3. **Advance a persistent campaign.** The engine scales the theme's route and title thresholds to the configured target, evaluates achievements, and emits deduplicated lifecycle events. A journey's identity and rules lock after its first successful run; completion freezes and archives the result.
+3. **Advance a persistent campaign.** The journey engine scales the theme's route and title thresholds to the configured target, evaluates achievements, and emits deduplicated lifecycle events. A journey's identity and rules lock after its first successful run; completion freezes and archives the result.
 4. **Render a safe, static card.** A shared view model drives the standard and compact SVG layouts. Theme artwork is parsed, sanitized, namespaced, and inlined, producing an accessible image with no scripts, remote assets, custom fonts, or browser runtime dependency.
-5. **Write everything transactionally.** Versioned state, history, daily snapshots, events, and the SVG are prepared and validated before any output is replaced. Failed updates roll back cleanly, unchanged same-day runs are idempotent, and completed journeys render without another API collection.
+5. **Write everything transactionally.** Versioned state, journey archives, daily snapshots, events, and the SVG are prepared and validated before any output is replaced. Failed updates roll back cleanly, unchanged same-day runs are idempotent, and completed journeys render without another API collection.
 
 The GitHub Action packages that same engine and can optionally commit changed artifacts back to the repository. Fork installations and existing-repository installations therefore share the same configuration, theme, calculation, storage, and rendering contracts.
 
@@ -72,7 +72,7 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: Fulforce/profilestats-rpg@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
