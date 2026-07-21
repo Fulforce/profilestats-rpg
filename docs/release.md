@@ -1,6 +1,6 @@
 # Release Guide
 
-This project releases a JavaScript GitHub Action. Consumers use either the moving major tag, such as `v1`, or an immutable version tag, such as `v1.0.0`.
+This project releases a JavaScript GitHub Action. Consumers use either the moving major tag, such as `v1`, or an immutable version tag, such as `v1.0.1`.
 
 ## Stable Release Checklist
 
@@ -15,23 +15,24 @@ Before publishing a stable release:
 7. Confirm generated personal data is not committed under `data/` or `output/`.
 8. Confirm `.github/profile-stats-rpg.yml` contains the safe `octocat` example profile.
 9. Confirm GitHub Dependency graph is enabled so the Dependency Review workflow can run.
-10. Confirm the previous working prerelease remains available.
+10. Identify the last known-good immutable release for rollback.
 
-## Publishing `v1.0.0`
+## Publishing A Stable Release
 
-Create and push the immutable release tag from `main`:
+Choose the next semantic version, update `CHANGELOG.md`, then create and push the immutable tag from the verified `main` commit. Replace the example version below before running it:
 
 ```bash
+VERSION=v1.0.2
 git switch main
 git pull --ff-only
 npm run check:ci
-git tag -a v1.0.0 -m "v1.0.0"
-git push origin v1.0.0
+git tag -a "$VERSION" -m "$VERSION"
+git push origin "$VERSION"
 ```
 
 Create the GitHub release from the same tag and use the `CHANGELOG.md` entry as the release notes.
 
-Move the major tag only after `v1.0.0` exists and points at the verified commit:
+Move the compatible major tag only after the immutable release exists and its release checks pass:
 
 ```bash
 git tag -fa v1 -m "v1"
@@ -40,10 +41,10 @@ git push origin v1 --force-with-lease
 
 ## Rollback
 
-The previous working prerelease is `v1.0.0-beta.3`. If a stable release problem is found:
+If a stable release problem is found:
 
-1. Tell users to pin `Fulforce/profilestats-rpg@v1.0.0-beta.3` or the exact known-good commit.
-2. Move `v1` back to the last verified stable tag or leave it unchanged until a fixed release is published.
-3. Publish a patch release, for example `v1.0.1`, once the fix passes release verification.
+1. Tell users to pin the last known-good immutable stable tag or exact commit.
+2. Move `v1` back to that verified commit, or leave it unchanged if the faulty release was not promoted.
+3. Publish a new patch release once the fix passes the full release checklist.
 
 Immutable version tags must not be rewritten.

@@ -29,7 +29,7 @@ When collection is incomplete, the standard layout shows a neutral warning and b
 
 The renderer currently inlines the bundled theme's required `assets/character.svg`. Theme asset files are limited to 100 KB, parsed before rendering, restricted to static SVG elements and attributes, and rejected if they contain scripts, event handlers, animation, external references, entities, embedded data, or unsupported markup. IDs and local `url(#id)` references are namespaced before the asset enters the generated card.
 
-The broader version-1 theme schema, licensing, palette contrast, and contributor contract remain part of the Phase 5 theme work.
+The version-1 theme contract also covers licensing metadata, palette contrast, referential integrity, and contribution requirements. Theme data and assets are validated before rendering; contributor review covers provenance and visual quality.
 
 ## Output Validation
 

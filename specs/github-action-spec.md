@@ -26,17 +26,22 @@ name: Update Profile RPG
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "17 5 * * *"
+  # Enable only after a successful manual run.
+  # schedule:
+  #   - cron: "17 5 * * *"
 
 permissions:
   contents: write
+
+concurrency:
+  group: profile-stats-rpg-${{ github.repository }}
+  cancel-in-progress: false
 
 jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: Fulforce/profilestats-rpg@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -45,13 +50,11 @@ jobs:
 
 The Action reads journey settings from the checked-out consumer repository. The referenced release contains the executable engine and bundled themes. GitHub supplies the runner; the maintainer hosts no runtime infrastructure.
 
-The final owner/repository spelling is release metadata and may differ from this example.
-
 ## Action Packaging
 
 The repository exposes `action.yml` as a JavaScript Action with a checked-in, reproducible `dist/` bundle. Consumers do not run `npm install` for this project and do not depend on the repository's development files.
 
-Decision record for Phase 4:
+Packaging decisions:
 
 - the Action is authored in TypeScript and bundled as JavaScript with `@vercel/ncc`;
 - `dist/` is committed and CI must reject a bundle that differs from a clean rebuild;
@@ -160,9 +163,9 @@ Collection timestamps are not meaningful state changes. When a same-day collecti
 
 ## Release Verification
 
-Publishing is deliberately separated from implementation. After the implementation has passed review, an immutable prerelease is published and exercised from a separate consumer repository. Stable or moving tags are not created as part of the implementation review.
+Publishing is deliberately separated from implementation. A release candidate passes review and automated checks before its immutable tag is exercised from a separate consumer repository. The compatible moving major tag is updated only after that verification succeeds.
 
-Phase 4 release verification completed against immutable `v1.0.0-beta.3` in `Fulforce/profilestats-rpg-action-test`. Generation-only permissions, restricted generated-file commits, same-day idempotency, concurrency configuration, and protected-branch rejection were exercised successfully. Earlier beta tags remain immutable records of defects found and corrected during validation. No stable or moving Action tag was created by this validation step.
+The initial release was validated through immutable `v1.0.0-beta.3` in `Fulforce/profilestats-rpg-action-test`. That exercise covered generation-only permissions, restricted generated-file commits, same-day idempotency, concurrency configuration, and protected-branch rejection before the stable `v1.0.0` and moving `v1` tags were published. Earlier beta tags remain immutable historical records.
 
 CI for a release must:
 

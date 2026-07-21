@@ -74,7 +74,7 @@ type DailyLogDocument = {
 
 The compound key is `journeyId + date`. Re-running on the same UTC date replaces that entry while the journey is active. Completed journey snapshots are not changed. Entries are sorted by date and ID.
 
-The first public release retains all daily snapshots. A future retention option may compact them, but it must not remove completed journey summaries or unlock events.
+Version 1 retains all daily snapshots. A future retention option may compact them, but it must not remove completed journey summaries or unlock events.
 
 ## Event Log
 
